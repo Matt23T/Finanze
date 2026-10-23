@@ -60,6 +60,24 @@ input,select{width:100%;border:1px solid #dddfe4;border-radius:11px;padding:13px
   <button class="add" onclick="newAccount()">+ Aggiungi un conto</button>
   <button class="add transfer" onclick="openTransfer()">⇄ Trasferisci tra conti</button>
 
+  <div class="form" id="transferForm">
+    <h2>Trasferimento</h2>
+
+    <label for="from">Da quale conto</label>
+    <select id="from"></select>
+
+    <label for="to">A quale conto</label>
+    <select id="to"></select>
+
+    <label for="transferAmount">Importo da trasferire (€)</label>
+    <input id="transferAmount" type="number" inputmode="decimal" min="0.01" step="0.01" placeholder="0,00">
+
+    <div class="formbuttons">
+      <button class="cancel" onclick="closeTransfer()">Annulla</button>
+      <button class="save" onclick="saveTransfer()">Trasferisci</button>
+    </div>
+  </div>
+
   <div class="history">
     <div class="historyHead">
       <h2>Ultimi trasferimenti</h2>
@@ -82,24 +100,6 @@ input,select{width:100%;border:1px solid #dddfe4;border-radius:11px;padding:13px
     <div class="formbuttons">
       <button class="cancel" onclick="closeForm()">Annulla</button>
       <button class="save" onclick="saveAccount()">Salva</button>
-    </div>
-  </div>
-
-  <div class="form" id="transferForm">
-    <h2>Trasferimento</h2>
-
-    <label for="from">Da quale conto</label>
-    <select id="from"></select>
-
-    <label for="to">A quale conto</label>
-    <select id="to"></select>
-
-    <label for="transferAmount">Importo da trasferire (€)</label>
-    <input id="transferAmount" type="number" inputmode="decimal" min="0.01" step="0.01" placeholder="0,00">
-
-    <div class="formbuttons">
-      <button class="cancel" onclick="closeTransfer()">Annulla</button>
-      <button class="save" onclick="saveTransfer()">Trasferisci</button>
     </div>
   </div>
 </div>
@@ -223,15 +223,11 @@ function renderTransfers() {
     const middle = document.createElement("div");
     middle.className = "transferMiddle";
 
-    const arrow = document.createElement("span");
-    arrow.className = "transferArrow";
-    arrow.textContent = "→";
-
     const amount = document.createElement("span");
     amount.className = "transferAmount";
     amount.textContent = "+ " + euro(t.amount);
 
-    middle.append(arrow, amount);
+    middle.append(amount);
 
     const to = document.createElement("div");
     to.className = "transferName";
