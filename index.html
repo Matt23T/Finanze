@@ -23,10 +23,11 @@ h2{font-size:19px;margin:12px 0 16px}
 .small{border:0;background:#f0f1f4;border-radius:10px;padding:9px;color:#333;font-size:14px}
 button{cursor:pointer;font:inherit}
 .add{width:100%;border:0;border-radius:15px;padding:16px;background:#17191d;color:white;font-weight:650;font-size:15px;margin-top:7px}
+.transfer{background:#3978E8;margin-top:10px}
 .form{display:none;background:white;border-radius:18px;padding:18px;margin-top:15px}
 .form h2{margin:0 0 18px}
 label{display:block;font-size:13px;color:#666;margin:14px 0 7px}
-input{width:100%;border:1px solid #dddfe4;border-radius:11px;padding:13px;font-size:16px;background:white;color:#17191d}
+input,select{width:100%;border:1px solid #dddfe4;border-radius:11px;padding:13px;font-size:16px;background:white;color:#17191d}
 .colors{display:flex;gap:11px;flex-wrap:wrap;margin-top:10px}
 .color{width:30px;height:30px;border-radius:50%;border:3px solid white;outline:1px solid #ddd}
 .color.selected{outline:3px solid #17191d}
@@ -48,6 +49,7 @@ input{width:100%;border:1px solid #dddfe4;border-radius:11px;padding:13px;font-s
   <div id="accounts"></div>
 
   <button class="add" onclick="newAccount()">+ Aggiungi un conto</button>
+  <button class="add transfer" onclick="openTransfer()">⇄ Trasferisci tra conti</button>
 
   <div class="form" id="form">
     <h2 id="formTitle">Nuovo conto</h2>
@@ -63,6 +65,24 @@ input{width:100%;border:1px solid #dddfe4;border-radius:11px;padding:13px;font-s
     <div class="formbuttons">
       <button class="cancel" onclick="closeForm()">Annulla</button>
       <button class="save" onclick="saveAccount()">Salva</button>
+    </div>
+  </div>
+
+  <div class="form" id="transferForm">
+    <h2>Trasferimento</h2>
+
+    <label for="from">Da quale conto</label>
+    <select id="from"></select>
+
+    <label for="to">A quale conto</label>
+    <select id="to"></select>
+
+    <label for="transferAmount">Importo da trasferire (€)</label>
+    <input id="transferAmount" type="number" inputmode="decimal" min="0.01" step="0.01" placeholder="0,00">
+
+    <div class="formbuttons">
+      <button class="cancel" onclick="closeTransfer()">Annulla</button>
+      <button class="save" onclick="saveTransfer()">Trasferisci</button>
     </div>
   </div>
 </div>
@@ -167,6 +187,7 @@ function renderColors() {
 }
 
 function newAccount() {
+  closeTransfer();
   editingId = null;
   selectedColor = palette[accounts.length % palette.length];
   document.getElementById("formTitle").textContent = "Nuovo conto";
@@ -178,6 +199,7 @@ function newAccount() {
 }
 
 function editAccount(id) {
+  closeTransfer();
   const a = accounts.find(item => item.id === id);
   if (!a) return;
 
@@ -240,6 +262,77 @@ function deleteAccount(id) {
 function closeForm() {
   document.getElementById("form").style.display = "none";
   editingId = null;
+}
+
+function openTransfer() {
+  closeForm();
+
+  if (accounts.length < 2) {
+    alert("Devi avere almeno due conti per effettuare un trasferimento.");
+    return;
+  }
+
+  const from = document.getElementById("from");
+  const to = document.getElementById("to");
+  from.innerHTML = "";
+  to.innerHTML = "";
+
+  accounts.forEach(a => {
+    const optionFrom = document.createElement("option");
+    optionFrom.value = a.id;
+    optionFrom.textContent = a.name + " (" + euro(a.balance) + ")";
+    from.append(optionFrom);
+
+    const optionTo = document.createElement("option");
+    optionTo.value = a.id;
+    optionTo.textContent = a.name;
+    to.append(optionTo);
+  });
+
+  to.selectedIndex = 1;
+  document.getElementById("transferAmount").value = "";
+  document.getElementById("transferForm").style.display = "block";
+  document.getElementById("transferForm").scrollIntoView({behavior:"smooth"});
+}
+
+function saveTransfer() {
+  const fromId = document.getElementById("from").value;
+  const toId = document.getElementById("to").value;
+  const rawAmount = document.getElementById("transferAmount").value.trim();
+  const amount = Math.round(Number(rawAmount) * 100) / 100;
+
+  if (fromId === toId) {
+    alert("Scegli due conti diversi.");
+    return;
+  }
+
+  if (rawAmount === "" || !Number.isFinite(amount) || amount <= 0) {
+    alert("Inserisci un importo valido.");
+    return;
+  }
+
+  const from = accounts.find(a => a.id === fromId);
+  const to = accounts.find(a => a.id === toId);
+
+  if (!from || !to) {
+    alert("Seleziona due conti validi.");
+    return;
+  }
+
+  if (Math.round(Number(from.balance) * 100) < Math.round(amount * 100)) {
+    alert("Saldo insufficiente nel conto di partenza.");
+    return;
+  }
+
+  from.balance = Math.round((Number(from.balance) - amount) * 100) / 100;
+  to.balance = Math.round((Number(to.balance) + amount) * 100) / 100;
+
+  persist();
+  closeTransfer();
+}
+
+function closeTransfer() {
+  document.getElementById("transferForm").style.display = "none";
 }
 
 render();
