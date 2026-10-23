@@ -26,7 +26,7 @@ button{cursor:pointer;font:inherit}
 .form{display:none;background:white;border-radius:18px;padding:18px;margin-top:15px}
 .form h2{margin:0 0 18px}
 label{display:block;font-size:13px;color:#666;margin:14px 0 7px}
-input,select{width:100%;border:1px solid #dddfe4;border-radius:11px;padding:13px;font-size:16px;background:white;color:#17191d;min-width:0}
+input,select{width:100%;border:1px solid #dddfe4;border-radius:11px;padding:13px;font-size:16px;background:white;color:#17191d}
 .colors{display:flex;gap:11px;flex-wrap:wrap;margin-top:10px}
 .color{width:30px;height:30px;border-radius:50%;border:3px solid white;outline:1px solid #ddd}
 .color.selected{outline:3px solid #17191d}
@@ -41,27 +41,21 @@ input,select{width:100%;border:1px solid #dddfe4;border-radius:11px;padding:13px
 .more{border:0;background:transparent;color:#3978E8;font-size:14px;font-weight:600;padding:8px 0}
 .transferRow{background:white;border-radius:14px;padding:15px;margin-bottom:9px;display:flex;align-items:center;justify-content:space-between;gap:9px;box-shadow:0 2px 10px #00000006}
 .transferName{font-size:14px;font-weight:650;overflow-wrap:anywhere;min-width:0}
-.transferMiddle{display:flex;align-items:center;gap:5px;white-space:nowrap;flex-shrink:0}
+.transferMiddle{display:flex;flex-direction:column;align-items:center;gap:3px;white-space:nowrap;flex-shrink:0}
 .transferAmount{font-size:14px;font-weight:700}
+.assetName{font-size:11px;color:#777;font-weight:600}
 .movementDate{font-size:11px;color:#888;font-weight:400;margin-top:5px}
 .detailBalance{font-size:30px;font-weight:750;margin:10px 0 20px;overflow-wrap:anywhere}
 .detailActions{display:flex;gap:10px;margin-top:18px}
 .detailActions button{flex:1;border:0;border-radius:11px;padding:13px;font-weight:600;background:#f0f1f4}
 .detailActions .delete{background:#FCE8E8;color:#B42318}
-.sectionTitle{font-size:15px;font-weight:700;margin:20px 0 10px}
-.componentEditor{border:1px solid #e6e7eb;border-radius:13px;padding:13px;margin-bottom:10px}
-.componentEditorHead{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:8px}
-.componentEditorHead strong{font-size:13px}
-.removeComponent{border:0;background:#FCE8E8;color:#B42318;border-radius:8px;padding:7px 10px;font-size:12px;font-weight:600}
-.componentEditor label{margin-top:10px}
-.addComponent{width:100%;border:1px dashed #b8bdc7;background:#fafbfc;color:#333;border-radius:12px;padding:13px;font-size:14px;font-weight:600;margin-top:3px}
-.componentRow{background:white;border-radius:13px;padding:13px;margin-bottom:8px;display:flex;align-items:center;gap:11px}
-.componentDot{width:9px;height:35px;border-radius:6px;flex-shrink:0}
-.componentInfo{flex:1;min-width:0}
-.componentName{font-size:14px;font-weight:650;overflow-wrap:anywhere}
-.componentType{font-size:12px;color:#777;margin-top:4px}
-.componentValue{font-size:15px;font-weight:700;white-space:nowrap}
-.help{font-size:12px;color:#777;line-height:1.5;margin-top:8px}
+.composition{background:#f5f6f8;border-radius:13px;padding:14px;margin-top:12px}
+.compositionTitle{font-size:12px;color:#777;font-weight:650;letter-spacing:.5px;margin-bottom:10px}
+.compositionRow{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:9px 0;font-size:14px}
+.compositionRow+.compositionRow{border-top:1px solid #e3e5e9}
+.compositionRow strong{overflow-wrap:anywhere;text-align:right}
+.assetRow{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:9px 0;font-size:14px}
+.assetRow strong{overflow-wrap:anywhere;text-align:right}
 </style>
 </head>
 <body>
@@ -76,10 +70,24 @@ input,select{width:100%;border:1px solid #dddfe4;border-radius:11px;padding:13px
 
   <div class="form" id="accountDetail">
     <h2 id="detailName">Dettagli conto</h2>
-    <div class="label">SALDO TOTALE</div>
+    <div class="label">SALDO ATTUALE</div>
     <div class="detailBalance" id="detailBalance">€ 0,00</div>
-    <div class="sectionTitle">Composizione del conto</div>
-    <div id="detailComponents"></div>
+
+    <div class="composition">
+      <div class="compositionTitle">LIQUIDITÀ</div>
+      <div class="compositionRow">
+        <span>Disponibilità</span>
+        <strong id="detailLiquidity">€ 0,00</strong>
+      </div>
+    </div>
+
+    <div class="composition">
+      <div class="compositionTitle">INVESTIMENTI</div>
+      <div id="detailInvestments"></div>
+    </div>
+
+    <button class="add transfer" onclick="openInternalTransfer()">⇄ Trasferisci in investimenti</button>
+
     <div class="detailActions">
       <button onclick="editSelectedAccount()">Modifica</button>
       <button class="delete" onclick="deleteSelectedAccount()">Elimina</button>
@@ -108,6 +116,21 @@ input,select{width:100%;border:1px solid #dddfe4;border-radius:11px;padding:13px
     <div class="formbuttons">
       <button class="cancel" onclick="closeTransfer()">Annulla</button>
       <button class="save" onclick="saveTransfer()">Trasferisci</button>
+    </div>
+  </div>
+
+  <div class="form" id="internalTransferForm">
+    <h2 id="internalTransferTitle">Trasferimento in investimenti</h2>
+
+    <label for="investmentName">Nome dell'investimento</label>
+    <input id="investmentName" maxlength="50" placeholder="Es. BTC, Apple">
+
+    <label for="internalTransferAmount">Importo da trasferire (€)</label>
+    <input id="internalTransferAmount" type="number" inputmode="decimal" min="0.01" step="0.01" placeholder="0,00">
+
+    <div class="formbuttons">
+      <button class="cancel" onclick="closeInternalTransfer()">Annulla</button>
+      <button class="save" onclick="saveInternalTransfer()">Trasferisci</button>
     </div>
   </div>
 
@@ -145,14 +168,11 @@ input,select{width:100%;border:1px solid #dddfe4;border-radius:11px;padding:13px
 
   <div class="form" id="form">
     <h2 id="formTitle">Nuovo conto</h2>
-
     <label for="name">Nome del conto</label>
-    <input id="name" placeholder="Es. Intesa, Kraken, Poste" maxlength="50">
+    <input id="name" placeholder="Es. Intesa, Poste, Contanti" maxlength="50">
 
-    <div class="sectionTitle">Composizione del conto</div>
-    <div id="componentEditors"></div>
-    <button type="button" class="addComponent" onclick="addComponentEditor()">+ Aggiungi una componente</button>
-    <div class="help">Il saldo totale viene calcolato sommando i valori delle componenti.</div>
+    <label for="balance">Saldo attuale (€)</label>
+    <input id="balance" type="number" inputmode="decimal" step="0.01" placeholder="0,00">
 
     <label>Colore del conto</label>
     <div class="colors" id="colors"></div>
@@ -170,20 +190,14 @@ const palette = [
   "#E05260","#16A6B6","#6B7280","#D3A72F"
 ];
 
-const componentTypes = [
-  {value:"liquidita",label:"Liquidità"},
-  {value:"cripto",label:"Cripto"},
-  {value:"investimenti",label:"Investimenti"}
-];
-
 let accounts = [];
 let transfers = [];
 let incomes = [];
 let editingId = null;
 let selectedAccountId = null;
+let internalTransferAccountId = null;
 let selectedColor = palette[0];
 let showAllTransfers = false;
-let draftComponents = [];
 
 try {
   accounts = JSON.parse(localStorage.getItem("rendiconto_conti")) || [];
@@ -206,58 +220,35 @@ try {
   incomes = [];
 }
 
-const euro = value => Number(value || 0).toLocaleString("it-IT", {
+function investmentTotal(account) {
+  return (account.investments || []).reduce(
+    (sum, investment) => sum + (Number(investment.value) || 0), 0
+  );
+}
+
+function updateAccountBalance(account) {
+  account.liquidity = Math.round((Number(account.liquidity) || 0) * 100) / 100;
+  account.balance = Math.round((account.liquidity + investmentTotal(account)) * 100) / 100;
+}
+
+accounts.forEach(account => {
+  if (!Array.isArray(account.investments)) {
+    account.investments = [];
+  }
+
+  if (account.liquidity === undefined || account.liquidity === null) {
+    account.liquidity = (Number(account.balance) || 0) - investmentTotal(account);
+  }
+
+  updateAccountBalance(account);
+});
+
+const euro = value => Number(value).toLocaleString("it-IT", {
   style:"currency", currency:"EUR"
 });
 
-function roundMoney(value) {
-  return Math.round((Number(value) || 0) * 100) / 100;
-}
-
-function componentTotal(account) {
-  if (Array.isArray(account.components)) {
-    return roundMoney(account.components.reduce(
-      (sum, component) => sum + (Number(component.value) || 0), 0
-    ));
-  }
-  return roundMoney(account.balance);
-}
-
-function syncBalance(account) {
-  account.balance = componentTotal(account);
-  return account.balance;
-}
-
-function makeLiquidity(value) {
-  return {
-    id:Date.now().toString() + Math.random().toString(16).slice(2),
-    type:"liquidita",
-    name:"Liquidità",
-    value:roundMoney(value)
-  };
-}
-
-/* I conti precedenti vengono mantenuti e convertiti
-   in una componente Liquidità con il saldo già presente. */
-accounts = accounts.map(account => {
-  if (!Array.isArray(account.components) || !account.components.length) {
-    account.components = [makeLiquidity(account.balance)];
-  } else {
-    account.components = account.components.map(component => ({
-      id:component.id || (Date.now().toString() + Math.random().toString(16).slice(2)),
-      type:component.type || "liquidita",
-      name:component.type === "liquidita"
-        ? "Liquidità"
-        : (component.name || ""),
-      value:roundMoney(component.value)
-    }));
-  }
-  syncBalance(account);
-  return account;
-});
-
 function persist() {
-  accounts.forEach(syncBalance);
+  accounts.forEach(updateAccountBalance);
   localStorage.setItem("rendiconto_conti", JSON.stringify(accounts));
   localStorage.setItem("rendiconto_trasferimenti", JSON.stringify(transfers));
   localStorage.setItem("rendiconto_entrate", JSON.stringify(incomes));
@@ -266,7 +257,7 @@ function persist() {
 
 function render() {
   document.getElementById("total").textContent =
-    euro(accounts.reduce((sum, account) => sum + componentTotal(account), 0));
+    euro(accounts.reduce((sum, a) => sum + (Number(a.balance) || 0), 0));
 
   const container = document.getElementById("accounts");
   container.innerHTML = "";
@@ -276,25 +267,25 @@ function render() {
       '<div class="empty">Aggiungi il tuo primo conto per iniziare.</div>';
   }
 
-  accounts.forEach(account => {
+  accounts.forEach(a => {
     const card = document.createElement("div");
     card.className = "account";
-    card.onclick = () => openAccountDetail(account.id);
+    card.onclick = () => openAccountDetail(a.id);
 
     const dot = document.createElement("div");
     dot.className = "dot";
-    dot.style.background = account.color;
+    dot.style.background = a.color;
 
     const details = document.createElement("div");
     details.className = "details";
 
     const name = document.createElement("div");
     name.className = "name";
-    name.textContent = account.name;
+    name.textContent = a.name;
 
     const balance = document.createElement("div");
     balance.className = "balance";
-    balance.textContent = euro(componentTotal(account));
+    balance.textContent = euro(a.balance);
 
     details.append(name, balance);
     card.append(dot, details);
@@ -304,74 +295,44 @@ function render() {
   renderTransfers();
 }
 
-function componentDisplayName(component) {
-  if (component.type === "liquidita") return "Liquidità";
-  if (component.type === "cripto") return component.name || "Cripto";
-  if (component.type === "investimenti") return component.name || "Investimento";
-  return component.name || "Componente";
-}
-
-function componentTypeName(type) {
-  const item = componentTypes.find(option => option.value === type);
-  return item ? item.label : "Liquidità";
-}
-
-function componentColor(type) {
-  if (type === "liquidita") return "#3978E8";
-  if (type === "cripto") return "#9659D8";
-  return "#18A779";
-}
-
-function renderDetailComponents(account) {
-  const container = document.getElementById("detailComponents");
-  container.innerHTML = "";
-
-  if (!account.components.length) {
-    container.innerHTML = '<div class="empty">Nessuna componente presente.</div>';
-    return;
-  }
-
-  account.components.forEach(component => {
-    const row = document.createElement("div");
-    row.className = "componentRow";
-
-    const dot = document.createElement("div");
-    dot.className = "componentDot";
-    dot.style.background = componentColor(component.type);
-
-    const info = document.createElement("div");
-    info.className = "componentInfo";
-
-    const name = document.createElement("div");
-    name.className = "componentName";
-    name.textContent = componentDisplayName(component);
-
-    const type = document.createElement("div");
-    type.className = "componentType";
-    type.textContent = componentTypeName(component.type);
-
-    const value = document.createElement("div");
-    value.className = "componentValue";
-    value.textContent = euro(component.value);
-
-    info.append(name, type);
-    row.append(dot, info, value);
-    container.append(row);
-  });
-}
-
 function openAccountDetail(id) {
   closeForm();
   closeTransfer();
+  closeInternalTransfer();
   closeIncome();
 
-  const account = accounts.find(item => item.id === id);
+  const account = accounts.find(a => a.id === id);
   if (!account) return;
 
   selectedAccountId = id;
   document.getElementById("detailName").textContent = account.name;
-  document.getElementById("detailBalance").textContent = euro(componentTotal(account));
-  renderDetailComponents(account);
+  document.getElementById("detailBalance").textContent = euro(account.balance);
+  document.getElementById("detailLiquidity").textContent = euro(account.liquidity);
+
+  const investmentContainer = document.getElementById("detailInvestments");
+  investmentContainer.innerHTML = "";
+
+  if (!account.investments.length) {
+    const empty = document.createElement("div");
+    empty.className = "empty";
+    empty.textContent = "Nessun investimento.";
+    investmentContainer.append(empty);
+  } else {
+    account.investments.forEach(investment => {
+      const row = document.createElement("div");
+      row.className = "assetRow";
+
+      const name = document.createElement("span");
+      name.textContent = investment.name;
+
+      const value = document.createElement("strong");
+      value.textContent = euro(investment.value);
+
+      row.append(name, value);
+      investmentContainer.append(row);
+    });
+  }
+
   document.getElementById("accountDetail").style.display = "block";
   document.getElementById("accountDetail").scrollIntoView({behavior:"smooth"});
 }
@@ -440,19 +401,31 @@ function renderTransfers() {
     if (m.type === "transfer") {
       left.textContent = m.fromName;
       left.style.color = m.fromColor;
+
       amount.textContent = "+ " + euro(m.amount);
+
       right.textContent = m.toName;
       right.style.color = m.toColor;
+
+      if (m.assetName) {
+        const asset = document.createElement("span");
+        asset.className = "assetName";
+        asset.textContent = m.assetName;
+        middle.append(amount, asset);
+      } else {
+        middle.append(amount);
+      }
     } else {
       left.textContent = m.description || "Entrata";
       left.style.color = m.type === "expense" ? "#E05260" : "#18A779";
+
       amount.textContent =
         (m.type === "expense" ? "− " : "+ ") + euro(m.amount);
+
       right.textContent = m.accountName;
       right.style.color = m.accountColor;
+      middle.append(amount);
     }
-
-    middle.append(amount);
 
     const date = document.createElement("div");
     date.className = "movementDate";
@@ -491,207 +464,72 @@ function renderColors() {
   });
 }
 
-function renderComponentEditors() {
-  const container = document.getElementById("componentEditors");
-  container.innerHTML = "";
-
-  draftComponents.forEach((component, index) => {
-    const editor = document.createElement("div");
-    editor.className = "componentEditor";
-
-    const head = document.createElement("div");
-    head.className = "componentEditorHead";
-
-    const title = document.createElement("strong");
-    title.textContent = "Componente " + (index + 1);
-
-    const remove = document.createElement("button");
-    remove.type = "button";
-    remove.className = "removeComponent";
-    remove.textContent = "Rimuovi";
-    remove.onclick = () => {
-      draftComponents.splice(index, 1);
-      renderComponentEditors();
-    };
-
-    head.append(title, remove);
-    editor.append(head);
-
-    const typeLabel = document.createElement("label");
-    typeLabel.textContent = "Tipo";
-
-    const typeSelect = document.createElement("select");
-
-    componentTypes.forEach(optionData => {
-      const option = document.createElement("option");
-      option.value = optionData.value;
-      option.textContent = optionData.label;
-      typeSelect.append(option);
-    });
-
-    typeSelect.value = component.type;
-    typeSelect.onchange = () => {
-      component.type = typeSelect.value;
-      component.name = component.type === "liquidita" ? "Liquidità" : "";
-      renderComponentEditors();
-    };
-
-    editor.append(typeLabel, typeSelect);
-
-    if (component.type !== "liquidita") {
-      const nameLabel = document.createElement("label");
-      nameLabel.textContent =
-        component.type === "cripto" ? "Nome della criptovaluta" : "Nome dell'investimento";
-
-      const nameInput = document.createElement("input");
-      nameInput.type = "text";
-      nameInput.maxLength = 50;
-      nameInput.placeholder =
-        component.type === "cripto" ? "Es. BTC, ETH" : "Es. Apple, ETF S&P 500";
-      nameInput.value = component.name || "";
-      nameInput.oninput = () => {
-        component.name = nameInput.value;
-      };
-
-      editor.append(nameLabel, nameInput);
-    }
-
-    const valueLabel = document.createElement("label");
-    valueLabel.textContent = "Valore attuale (€)";
-
-    const valueInput = document.createElement("input");
-    valueInput.type = "number";
-    valueInput.inputMode = "decimal";
-    valueInput.step = "0.01";
-    valueInput.placeholder = "0,00";
-    valueInput.value = component.value;
-    valueInput.oninput = () => {
-      component.value = valueInput.value;
-    };
-
-    editor.append(valueLabel, valueInput);
-    container.append(editor);
-  });
-}
-
-function addComponentEditor() {
-  draftComponents.push({
-    id:Date.now().toString() + Math.random().toString(16).slice(2),
-    type:"cripto",
-    name:"",
-    value:0
-  });
-  renderComponentEditors();
-}
-
 function newAccount() {
   closeAccountDetail();
   closeTransfer();
+  closeInternalTransfer();
   closeIncome();
-
   editingId = null;
   selectedColor = palette[accounts.length % palette.length];
-  draftComponents = [makeLiquidity(0)];
-
   document.getElementById("formTitle").textContent = "Nuovo conto";
   document.getElementById("name").value = "";
-
-  renderComponentEditors();
+  document.getElementById("balance").value = "";
   renderColors();
-
   document.getElementById("form").style.display = "block";
-  document.getElementById("form").scrollIntoView({behavior:"smooth"});
   document.getElementById("name").focus();
 }
 
 function editAccount(id) {
   closeAccountDetail();
   closeTransfer();
+  closeInternalTransfer();
   closeIncome();
 
-  const account = accounts.find(item => item.id === id);
-  if (!account) return;
+  const a = accounts.find(item => item.id === id);
+  if (!a) return;
 
   editingId = id;
-  selectedColor = account.color;
-
-  draftComponents = account.components.map(component => ({
-    id:component.id,
-    type:component.type,
-    name:component.name || "",
-    value:component.value
-  }));
-
+  selectedColor = a.color;
   document.getElementById("formTitle").textContent = "Modifica conto";
-  document.getElementById("name").value = account.name;
-
-  renderComponentEditors();
+  document.getElementById("name").value = a.name;
+  document.getElementById("balance").value = a.balance;
   renderColors();
-
   document.getElementById("form").style.display = "block";
   document.getElementById("form").scrollIntoView({behavior:"smooth"});
 }
 
 function saveAccount() {
   const name = document.getElementById("name").value.trim();
+  const rawBalance = document.getElementById("balance").value.trim();
 
   if (!name) {
     alert("Inserisci il nome del conto.");
     return;
   }
 
-  if (!draftComponents.length) {
-    alert("Aggiungi almeno una componente al conto.");
+  if (rawBalance === "" || !Number.isFinite(Number(rawBalance))) {
+    alert("Inserisci un saldo valido.");
     return;
   }
 
-  const components = [];
-
-  for (const component of draftComponents) {
-    const value = component.value === "" ? NaN : Number(component.value);
-
-    if (!Number.isFinite(value)) {
-      alert("Inserisci un valore valido per ogni componente.");
-      return;
-    }
-
-    if (component.type !== "liquidita" && value < 0) {
-      alert("Il valore di cripto e investimenti non può essere negativo.");
-      return;
-    }
-
-    if (component.type !== "liquidita" && !component.name.trim()) {
-      alert("Inserisci il nome di ogni cripto o investimento.");
-      return;
-    }
-
-    components.push({
-      id:component.id || (Date.now().toString() + Math.random().toString(16).slice(2)),
-      type:component.type,
-      name:component.type === "liquidita" ? "Liquidità" : component.name.trim(),
-      value:roundMoney(value)
-    });
-  }
-
-  const balance = roundMoney(components.reduce(
-    (sum, component) => sum + component.value, 0
-  ));
+  const balance = Number(rawBalance);
 
   if (editingId !== null) {
-    const account = accounts.find(item => item.id === editingId);
-    if (account) {
-      account.name = name;
-      account.components = components;
-      account.balance = balance;
-      account.color = selectedColor;
+    const a = accounts.find(item => item.id === editingId);
+    if (a) {
+      a.name = name;
+      a.liquidity = Math.round((balance - investmentTotal(a)) * 100) / 100;
+      a.color = selectedColor;
+      updateAccountBalance(a);
     }
   } else {
     accounts.push({
-      id:Date.now().toString() + Math.random().toString(16).slice(2),
+      id: Date.now().toString() + Math.random().toString(16).slice(2),
       name,
       balance,
-      components,
-      color:selectedColor
+      liquidity: balance,
+      investments: [],
+      color: selectedColor
     });
   }
 
@@ -700,10 +538,10 @@ function saveAccount() {
 }
 
 function deleteAccount(id) {
-  const account = accounts.find(item => item.id === id);
-  if (!account) return;
+  const a = accounts.find(item => item.id === id);
+  if (!a) return;
 
-  if (confirm('Vuoi eliminare il conto "' + account.name + '"?')) {
+  if (confirm('Vuoi eliminare il conto "' + a.name + '"?')) {
     accounts = accounts.filter(item => item.id !== id);
     persist();
   }
@@ -714,26 +552,10 @@ function closeForm() {
   editingId = null;
 }
 
-function getLiquidity(account) {
-  let liquidity = account.components.find(component => component.type === "liquidita");
-
-  if (!liquidity) {
-    liquidity = makeLiquidity(0);
-    account.components.unshift(liquidity);
-  }
-
-  return liquidity;
-}
-
-function changeLiquidity(account, amount) {
-  const liquidity = getLiquidity(account);
-  liquidity.value = roundMoney(Number(liquidity.value) + amount);
-  syncBalance(account);
-}
-
 function openTransfer() {
   closeForm();
   closeAccountDetail();
+  closeInternalTransfer();
   closeIncome();
 
   if (accounts.length < 2) {
@@ -746,15 +568,15 @@ function openTransfer() {
   from.innerHTML = "";
   to.innerHTML = "";
 
-  accounts.forEach(account => {
+  accounts.forEach(a => {
     const optionFrom = document.createElement("option");
-    optionFrom.value = account.id;
-    optionFrom.textContent = account.name + " (" + euro(componentTotal(account)) + ")";
+    optionFrom.value = a.id;
+    optionFrom.textContent = a.name + " (Liquidità: " + euro(a.liquidity) + ")";
     from.append(optionFrom);
 
     const optionTo = document.createElement("option");
-    optionTo.value = account.id;
-    optionTo.textContent = account.name;
+    optionTo.value = a.id;
+    optionTo.textContent = a.name;
     to.append(optionTo);
   });
 
@@ -768,7 +590,7 @@ function saveTransfer() {
   const fromId = document.getElementById("from").value;
   const toId = document.getElementById("to").value;
   const rawAmount = document.getElementById("transferAmount").value.trim();
-  const amount = roundMoney(Number(rawAmount));
+  const amount = Math.round(Number(rawAmount) * 100) / 100;
 
   if (fromId === toId) {
     alert("Scegli due conti diversi.");
@@ -780,31 +602,31 @@ function saveTransfer() {
     return;
   }
 
-  const from = accounts.find(account => account.id === fromId);
-  const to = accounts.find(account => account.id === toId);
+  const from = accounts.find(a => a.id === fromId);
+  const to = accounts.find(a => a.id === toId);
 
   if (!from || !to) {
     alert("Seleziona due conti validi.");
     return;
   }
 
-  const fromLiquidity = getLiquidity(from);
-
-  if (Math.round(Number(fromLiquidity.value) * 100) < Math.round(amount * 100)) {
+  if (Math.round(Number(from.liquidity) * 100) < Math.round(amount * 100)) {
     alert("Liquidità insufficiente nel conto di partenza.");
     return;
   }
 
-  changeLiquidity(from, -amount);
-  changeLiquidity(to, amount);
+  from.liquidity = Math.round((Number(from.liquidity) - amount) * 100) / 100;
+  to.liquidity = Math.round((Number(to.liquidity) + amount) * 100) / 100;
+  updateAccountBalance(from);
+  updateAccountBalance(to);
 
   transfers.unshift({
-    fromName:from.name,
-    fromColor:from.color,
-    toName:to.name,
-    toColor:to.color,
-    amount:amount,
-    date:Date.now()
+    fromName: from.name,
+    fromColor: from.color,
+    toName: to.name,
+    toColor: to.color,
+    amount: amount,
+    date: Date.now()
   });
 
   persist();
@@ -815,9 +637,93 @@ function closeTransfer() {
   document.getElementById("transferForm").style.display = "none";
 }
 
+function openInternalTransfer() {
+  if (selectedAccountId === null) return;
+
+  const account = accounts.find(a => a.id === selectedAccountId);
+  if (!account) return;
+
+  closeForm();
+  closeTransfer();
+  closeIncome();
+
+  internalTransferAccountId = account.id;
+  document.getElementById("internalTransferTitle").textContent =
+    "Trasferimento da " + account.name + " agli investimenti";
+  document.getElementById("investmentName").value = "";
+  document.getElementById("internalTransferAmount").value = "";
+  document.getElementById("internalTransferForm").style.display = "block";
+  document.getElementById("internalTransferForm").scrollIntoView({behavior:"smooth"});
+}
+
+function saveInternalTransfer() {
+  const account = accounts.find(a => a.id === internalTransferAccountId);
+  if (!account) {
+    alert("Seleziona un conto valido.");
+    return;
+  }
+
+  const assetName = document.getElementById("investmentName").value.trim();
+  const rawAmount = document.getElementById("internalTransferAmount").value.trim();
+  const amount = Math.round(Number(rawAmount) * 100) / 100;
+
+  if (!assetName) {
+    alert("Inserisci il nome dell'investimento.");
+    return;
+  }
+
+  if (rawAmount === "" || !Number.isFinite(amount) || amount <= 0) {
+    alert("Inserisci un importo valido.");
+    return;
+  }
+
+  if (Math.round(Number(account.liquidity) * 100) < Math.round(amount * 100)) {
+    alert("Liquidità insufficiente nel conto selezionato.");
+    return;
+  }
+
+  account.liquidity = Math.round((Number(account.liquidity) - amount) * 100) / 100;
+
+  let investment = account.investments.find(
+    item => item.name.toLocaleLowerCase("it-IT") === assetName.toLocaleLowerCase("it-IT")
+  );
+
+  if (investment) {
+    investment.value = Math.round((Number(investment.value) + amount) * 100) / 100;
+  } else {
+    account.investments.push({
+      name: assetName,
+      value: amount
+    });
+  }
+
+  updateAccountBalance(account);
+
+  transfers.unshift({
+    fromName: account.name,
+    fromColor: account.color,
+    toName: account.name,
+    toColor: account.color,
+    amount: amount,
+    assetName: assetName,
+    internal: true,
+    date: Date.now()
+  });
+
+  persist();
+  closeInternalTransfer();
+  openAccountDetail(account.id);
+}
+
+function closeInternalTransfer() {
+  document.getElementById("internalTransferForm").style.display = "none";
+  internalTransferAccountId = null;
+}
+
 function openIncome() {
   closeForm();
   closeTransfer();
+  closeInternalTransfer();
   closeAccountDetail();
 
   if (!accounts.length) {
@@ -828,10 +734,10 @@ function openIncome() {
   const select = document.getElementById("incomeAccount");
   select.innerHTML = "";
 
-  accounts.forEach(account => {
+  accounts.forEach(a => {
     const option = document.createElement("option");
-    option.value = account.id;
-    option.textContent = account.name + " (" + euro(componentTotal(account)) + ")";
+    option.value = a.id;
+    option.textContent = a.name + " (Liquidità: " + euro(a.liquidity) + ")";
     select.append(option);
   });
 
@@ -845,8 +751,9 @@ function openIncome() {
 function saveIncome() {
   const accountId = document.getElementById("incomeAccount").value;
   const rawAmount = document.getElementById("incomeAmount").value.trim();
-  const amount = roundMoney(Number(rawAmount));
-  const description = document.getElementById("incomeDescription").value.trim();
+  const amount = Math.round(Number(rawAmount) * 100) / 100;
+  const description =
+    document.getElementById("incomeDescription").value.trim();
   const type = document.getElementById("movementType").value;
 
   if (rawAmount === "" || !Number.isFinite(amount) || amount <= 0) {
@@ -854,31 +761,32 @@ function saveIncome() {
     return;
   }
 
-  const account = accounts.find(item => item.id === accountId);
+  const account = accounts.find(a => a.id === accountId);
 
   if (!account) {
     alert("Seleziona un conto valido.");
     return;
   }
 
-  const liquidity = getLiquidity(account);
-
   if (type === "expense" &&
-      Math.round(Number(liquidity.value) * 100) < Math.round(amount * 100)) {
+      Math.round(Number(account.liquidity) * 100) < Math.round(amount * 100)) {
     alert("Liquidità insufficiente nel conto selezionato.");
     return;
   }
 
   const change = type === "expense" ? -amount : amount;
-  changeLiquidity(account, change);
+
+  account.liquidity =
+    Math.round((Number(account.liquidity) + change) * 100) / 100;
+  updateAccountBalance(account);
 
   incomes.unshift({
-    type:type,
-    accountName:account.name,
-    accountColor:account.color,
-    description:description || (type === "expense" ? "Uscita" : "Entrata"),
-    amount:amount,
-    date:Date.now()
+    type: type,
+    accountName: account.name,
+    accountColor: account.color,
+    description: description || (type === "expense" ? "Uscita" : "Entrata"),
+    amount: amount,
+    date: Date.now()
   });
 
   persist();
