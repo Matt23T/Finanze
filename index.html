@@ -54,8 +54,14 @@ input,select{width:100%;border:1px solid #dddfe4;border-radius:11px;padding:13px
 .compositionRow{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:9px 0;font-size:14px}
 .compositionRow+.compositionRow{border-top:1px solid #e3e5e9}
 .compositionRow strong{overflow-wrap:anywhere;text-align:right}
-.assetRow{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:9px 0;font-size:14px}
-.assetRow strong{overflow-wrap:anywhere;text-align:right}
+.assetRow{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;padding:11px 0;font-size:14px}
+.assetRow+.assetRow{border-top:1px solid #e3e5e9}
+.assetDetails{flex:1;min-width:0}
+.assetDetails strong{display:block;overflow-wrap:anywhere}
+.assetCategory{font-size:11px;color:#777;margin-top:3px}
+.assetNumbers{font-size:12px;color:#777;margin-top:5px;line-height:1.6}
+.assetValue{font-weight:700;text-align:right;overflow-wrap:anywhere}
+.sectionMarker{display:inline-block;width:7px;height:7px;border-radius:50%;background:#3978E8;margin-right:7px;vertical-align:middle}
 </style>
 </head>
 <body>
@@ -74,7 +80,7 @@ input,select{width:100%;border:1px solid #dddfe4;border-radius:11px;padding:13px
     <div class="detailBalance" id="detailBalance">€ 0,00</div>
 
     <div class="composition">
-      <div class="compositionTitle">LIQUIDITÀ</div>
+      <div class="compositionTitle"><span class="sectionMarker"></span>LIQUIDITÀ</div>
       <div class="compositionRow">
         <span>Disponibilità</span>
         <strong id="detailLiquidity">€ 0,00</strong>
@@ -82,7 +88,7 @@ input,select{width:100%;border:1px solid #dddfe4;border-radius:11px;padding:13px
     </div>
 
     <div class="composition">
-      <div class="compositionTitle">INVESTIMENTI</div>
+      <div class="compositionTitle"><span class="sectionMarker"></span>INVESTIMENTI</div>
       <div id="detailInvestments"></div>
     </div>
 
@@ -122,11 +128,20 @@ input,select{width:100%;border:1px solid #dddfe4;border-radius:11px;padding:13px
   <div class="form" id="internalTransferForm">
     <h2 id="internalTransferTitle">Trasferimento in investimenti</h2>
 
+    <label for="investmentCategory">Categoria</label>
+    <select id="investmentCategory" onchange="handleCategoryChange()"></select>
+
     <label for="investmentName">Nome dell'investimento</label>
     <input id="investmentName" maxlength="50" placeholder="Es. BTC, Apple">
 
-    <label for="internalTransferAmount">Importo da trasferire (€)</label>
+    <label for="internalTransferAmount">Importo investito (€)</label>
     <input id="internalTransferAmount" type="number" inputmode="decimal" min="0.01" step="0.01" placeholder="0,00">
+
+    <label for="investmentQuantity">Quantità acquistata (facoltativa)</label>
+    <input id="investmentQuantity" type="number" inputmode="decimal" min="0.00000001" step="any" placeholder="Es. 3">
+
+    <label for="investmentUnitPrice">Prezzo unitario (€) (facoltativo)</label>
+    <input id="investmentUnitPrice" type="number" inputmode="decimal" min="0.00000001" step="any" placeholder="Es. 200">
 
     <div class="formbuttons">
       <button class="cancel" onclick="closeInternalTransfer()">Annulla</button>
@@ -190,6 +205,11 @@ const palette = [
   "#E05260","#16A6B6","#6B7280","#D3A72F"
 ];
 
+const defaultInvestmentCategories = [
+  "Azioni","Criptovalute","ETF","Obbligazioni","Altro"
+];
+
+let investmentCategories = [...defaultInvestmentCategories];
 let accounts = [];
 let transfers = [];
 let incomes = [];
@@ -220,6 +240,15 @@ try {
   incomes = [];
 }
 
+try {
+  const savedCategories = JSON.parse(localStorage.getItem("rendiconto_categorie_investimenti")) || [];
+  if (Array.isArray(savedCategories)) {
+    investmentCategories = [...new Set([...defaultInvestmentCategories, ...savedCategories])];
+  }
+} catch (e) {
+  investmentCategories = [...defaultInvestmentCategories];
+}
+
 function investmentTotal(account) {
   return (account.investments || []).reduce(
     (sum, investment) => sum + (Number(investment.value) || 0), 0
@@ -240,6 +269,24 @@ accounts.forEach(account => {
     account.liquidity = (Number(account.balance) || 0) - investmentTotal(account);
   }
 
+  account.investments.forEach(investment => {
+    if (investment.costBasis === undefined || investment.costBasis === null) {
+      investment.costBasis = Number(investment.value) || 0;
+    }
+    if (investment.quantity === undefined || investment.quantity === null) {
+      investment.quantity = null;
+    }
+    if (!investment.category) {
+      investment.category = "Altro";
+    }
+    if (investment.averagePrice === undefined || investment.averagePrice === null) {
+      const quantity = Number(investment.quantity);
+      investment.averagePrice = quantity > 0
+        ? Number(investment.costBasis) / quantity
+        : null;
+    }
+  });
+
   updateAccountBalance(account);
 });
 
@@ -252,6 +299,7 @@ function persist() {
   localStorage.setItem("rendiconto_conti", JSON.stringify(accounts));
   localStorage.setItem("rendiconto_trasferimenti", JSON.stringify(transfers));
   localStorage.setItem("rendiconto_entrate", JSON.stringify(incomes));
+  localStorage.setItem("rendiconto_categorie_investimenti", JSON.stringify(investmentCategories));
   render();
 }
 
@@ -322,13 +370,42 @@ function openAccountDetail(id) {
       const row = document.createElement("div");
       row.className = "assetRow";
 
-      const name = document.createElement("span");
+      const details = document.createElement("div");
+      details.className = "assetDetails";
+
+      const name = document.createElement("strong");
       name.textContent = investment.name;
 
-      const value = document.createElement("strong");
+      const category = document.createElement("div");
+      category.className = "assetCategory";
+      category.textContent = investment.category || "Altro";
+
+      details.append(name, category);
+
+      const quantity = Number(investment.quantity);
+      const averagePrice = Number(investment.averagePrice);
+      const numbers = document.createElement("div");
+      numbers.className = "assetNumbers";
+
+      if (Number.isFinite(quantity) && quantity > 0) {
+        numbers.textContent = "Quantità: " + quantity.toLocaleString("it-IT", {
+          maximumFractionDigits: 8
+        });
+
+        if (Number.isFinite(averagePrice) && averagePrice > 0) {
+          numbers.textContent += " · Prezzo medio: " + euro(averagePrice);
+        }
+      } else {
+        numbers.textContent = "Quantità e prezzo medio non disponibili";
+      }
+
+      details.append(numbers);
+
+      const value = document.createElement("div");
+      value.className = "assetValue";
       value.textContent = euro(investment.value);
 
-      row.append(name, value);
+      row.append(details, value);
       investmentContainer.append(row);
     });
   }
@@ -462,6 +539,52 @@ function renderColors() {
     };
     container.append(button);
   });
+}
+
+function renderInvestmentCategories(selected) {
+  const select = document.getElementById("investmentCategory");
+  select.innerHTML = "";
+
+  investmentCategories.forEach(category => {
+    const option = document.createElement("option");
+    option.value = category;
+    option.textContent = category;
+    select.append(option);
+  });
+
+  const createOption = document.createElement("option");
+  createOption.value = "__new_category__";
+  createOption.textContent = "＋ Crea nuova categoria";
+  select.append(createOption);
+
+  select.value = investmentCategories.includes(selected) ? selected : "Altro";
+}
+
+function handleCategoryChange() {
+  const select = document.getElementById("investmentCategory");
+
+  if (select.value !== "__new_category__") return;
+
+  const category = prompt("Nome della nuova categoria:");
+  const name = category ? category.trim() : "";
+
+  if (!name) {
+    select.value = "Altro";
+    return;
+  }
+
+  const existing = investmentCategories.find(
+    item => item.toLocaleLowerCase("it-IT") === name.toLocaleLowerCase("it-IT")
+  );
+
+  if (existing) {
+    select.value = existing;
+    return;
+  }
+
+  investmentCategories.push(name);
+  localStorage.setItem("rendiconto_categorie_investimenti", JSON.stringify(investmentCategories));
+  renderInvestmentCategories(name);
 }
 
 function newAccount() {
@@ -652,6 +775,9 @@ function openInternalTransfer() {
     "Trasferimento da " + account.name + " agli investimenti";
   document.getElementById("investmentName").value = "";
   document.getElementById("internalTransferAmount").value = "";
+  document.getElementById("investmentQuantity").value = "";
+  document.getElementById("investmentUnitPrice").value = "";
+  renderInvestmentCategories("Azioni");
   document.getElementById("internalTransferForm").style.display = "block";
   document.getElementById("internalTransferForm").scrollIntoView({behavior:"smooth"});
 }
@@ -664,7 +790,10 @@ function saveInternalTransfer() {
   }
 
   const assetName = document.getElementById("investmentName").value.trim();
+  const category = document.getElementById("investmentCategory").value;
   const rawAmount = document.getElementById("internalTransferAmount").value.trim();
+  const rawQuantity = document.getElementById("investmentQuantity").value.trim();
+  const rawPrice = document.getElementById("investmentUnitPrice").value.trim();
   const amount = Math.round(Number(rawAmount) * 100) / 100;
 
   if (!assetName) {
@@ -672,9 +801,46 @@ function saveInternalTransfer() {
     return;
   }
 
+  if (!category || category === "__new_category__") {
+    alert("Seleziona una categoria valida.");
+    return;
+  }
+
   if (rawAmount === "" || !Number.isFinite(amount) || amount <= 0) {
     alert("Inserisci un importo valido.");
     return;
+  }
+
+  let quantity = null;
+  let unitPrice = null;
+
+  if (rawQuantity !== "") {
+    quantity = Number(rawQuantity);
+    if (!Number.isFinite(quantity) || quantity <= 0) {
+      alert("Inserisci una quantità valida.");
+      return;
+    }
+  }
+
+  if (rawPrice !== "") {
+    unitPrice = Number(rawPrice);
+    if (!Number.isFinite(unitPrice) || unitPrice <= 0) {
+      alert("Inserisci un prezzo unitario valido.");
+      return;
+    }
+  }
+
+  if (quantity === null && unitPrice !== null) {
+    quantity = amount / unitPrice;
+  } else if (quantity !== null && unitPrice === null) {
+    unitPrice = amount / quantity;
+  } else if (quantity !== null && unitPrice !== null) {
+    const calculatedAmount = quantity * unitPrice;
+    if (Math.abs(calculatedAmount - amount) > 0.02) {
+      alert("L'importo investito deve corrispondere alla quantità moltiplicata per il prezzo unitario.");
+      return;
+    }
+    unitPrice = amount / quantity;
   }
 
   if (Math.round(Number(account.liquidity) * 100) < Math.round(amount * 100)) {
@@ -689,12 +855,34 @@ function saveInternalTransfer() {
   );
 
   if (investment) {
+    const oldCostBasis = Number(investment.costBasis ?? investment.value) || 0;
+    const oldQuantity = Number(investment.quantity) || 0;
+
     investment.value = Math.round((Number(investment.value) + amount) * 100) / 100;
+    investment.costBasis = Math.round((oldCostBasis + amount) * 100) / 100;
+    investment.category = category;
+
+    if (quantity !== null) {
+      investment.quantity = oldQuantity + quantity;
+    } else if (oldQuantity > 0) {
+      investment.quantity = oldQuantity;
+    }
+
+    if (Number(investment.quantity) > 0) {
+      investment.averagePrice = investment.costBasis / Number(investment.quantity);
+    } else {
+      investment.averagePrice = null;
+    }
   } else {
-    account.investments.push({
+    investment = {
       name: assetName,
-      value: amount
-    });
+      category: category,
+      value: amount,
+      costBasis: amount,
+      quantity: quantity,
+      averagePrice: quantity !== null && quantity > 0 ? amount / quantity : null
+    };
+    account.investments.push(investment);
   }
 
   updateAccountBalance(account);
