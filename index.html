@@ -36,6 +36,15 @@ input,select{width:100%;border:1px solid #dddfe4;border-radius:11px;padding:13px
 .save{background:#17191d;color:white}
 .cancel{background:#f0f1f4}
 .empty{text-align:center;color:#777;font-size:14px;padding:25px 10px}
+.history{margin-top:28px}
+.historyHead{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:12px}
+.historyHead h2{margin:0}
+.more{border:0;background:transparent;color:#3978E8;font-size:14px;font-weight:600;padding:8px 0}
+.transferRow{background:white;border-radius:14px;padding:15px;margin-bottom:9px;display:flex;align-items:center;justify-content:space-between;gap:9px;box-shadow:0 2px 10px #00000006}
+.transferName{font-size:14px;font-weight:650;overflow-wrap:anywhere;min-width:0}
+.transferMiddle{display:flex;align-items:center;gap:5px;white-space:nowrap;flex-shrink:0}
+.transferArrow{color:#888;font-size:18px}
+.transferAmount{font-size:14px;font-weight:700}
 </style>
 </head>
 <body>
@@ -50,6 +59,14 @@ input,select{width:100%;border:1px solid #dddfe4;border-radius:11px;padding:13px
 
   <button class="add" onclick="newAccount()">+ Aggiungi un conto</button>
   <button class="add transfer" onclick="openTransfer()">⇄ Trasferisci tra conti</button>
+
+  <div class="history">
+    <div class="historyHead">
+      <h2>Ultimi trasferimenti</h2>
+      <button class="more" id="showMore" onclick="toggleTransfers()">Mostra altro</button>
+    </div>
+    <div id="transferHistory"></div>
+  </div>
 
   <div class="form" id="form">
     <h2 id="formTitle">Nuovo conto</h2>
@@ -94,8 +111,10 @@ const palette = [
 ];
 
 let accounts = [];
+let transfers = [];
 let editingId = null;
 let selectedColor = palette[0];
+let showAllTransfers = false;
 
 try {
   accounts = JSON.parse(localStorage.getItem("rendiconto_conti")) || [];
@@ -104,12 +123,20 @@ try {
   accounts = [];
 }
 
+try {
+  transfers = JSON.parse(localStorage.getItem("rendiconto_trasferimenti")) || [];
+  if (!Array.isArray(transfers)) transfers = [];
+} catch (e) {
+  transfers = [];
+}
+
 const euro = value => Number(value).toLocaleString("it-IT", {
   style:"currency", currency:"EUR"
 });
 
 function persist() {
   localStorage.setItem("rendiconto_conti", JSON.stringify(accounts));
+  localStorage.setItem("rendiconto_trasferimenti", JSON.stringify(transfers));
   render();
 }
 
@@ -164,6 +191,62 @@ function render() {
     card.append(dot, details, actions);
     container.append(card);
   });
+
+  renderTransfers();
+}
+
+function renderTransfers() {
+  const container = document.getElementById("transferHistory");
+  const button = document.getElementById("showMore");
+  container.innerHTML = "";
+
+  button.style.display = transfers.length > 5 ? "block" : "none";
+  button.textContent = showAllTransfers ? "Mostra meno" : "Mostra altro";
+
+  const visible = showAllTransfers ? transfers : transfers.slice(0, 5);
+
+  if (!visible.length) {
+    container.innerHTML =
+      '<div class="empty">Non hai ancora effettuato trasferimenti.</div>';
+    return;
+  }
+
+  visible.forEach(t => {
+    const row = document.createElement("div");
+    row.className = "transferRow";
+
+    const from = document.createElement("div");
+    from.className = "transferName";
+    from.textContent = t.fromName;
+    from.style.color = t.fromColor;
+
+    const middle = document.createElement("div");
+    middle.className = "transferMiddle";
+
+    const arrow = document.createElement("span");
+    arrow.className = "transferArrow";
+    arrow.textContent = "→";
+
+    const amount = document.createElement("span");
+    amount.className = "transferAmount";
+    amount.textContent = "+ " + euro(t.amount);
+
+    middle.append(arrow, amount);
+
+    const to = document.createElement("div");
+    to.className = "transferName";
+    to.textContent = t.toName;
+    to.style.color = t.toColor;
+    to.style.textAlign = "right";
+
+    row.append(from, middle, to);
+    container.append(row);
+  });
+}
+
+function toggleTransfers() {
+  showAllTransfers = !showAllTransfers;
+  renderTransfers();
 }
 
 function renderColors() {
@@ -326,6 +409,14 @@ function saveTransfer() {
 
   from.balance = Math.round((Number(from.balance) - amount) * 100) / 100;
   to.balance = Math.round((Number(to.balance) + amount) * 100) / 100;
+
+  transfers.unshift({
+    fromName: from.name,
+    fromColor: from.color,
+    toName: to.name,
+    toColor: to.color,
+    amount: amount
+  });
 
   persist();
   closeTransfer();
