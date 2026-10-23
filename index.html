@@ -24,6 +24,7 @@ h2{font-size:19px;margin:12px 0 16px}
 button{cursor:pointer;font:inherit}
 .add{width:100%;border:0;border-radius:15px;padding:16px;background:#17191d;color:white;font-weight:650;font-size:15px;margin-top:7px}
 .transfer{background:#3978E8;margin-top:10px}
+.income{background:#18A779;margin-top:10px}
 .form{display:none;background:white;border-radius:18px;padding:18px;margin-top:15px}
 .form h2{margin:0 0 18px}
 label{display:block;font-size:13px;color:#666;margin:14px 0 7px}
@@ -43,8 +44,8 @@ input,select{width:100%;border:1px solid #dddfe4;border-radius:11px;padding:13px
 .transferRow{background:white;border-radius:14px;padding:15px;margin-bottom:9px;display:flex;align-items:center;justify-content:space-between;gap:9px;box-shadow:0 2px 10px #00000006}
 .transferName{font-size:14px;font-weight:650;overflow-wrap:anywhere;min-width:0}
 .transferMiddle{display:flex;align-items:center;gap:5px;white-space:nowrap;flex-shrink:0}
-.transferArrow{color:#888;font-size:18px}
 .transferAmount{font-size:14px;font-weight:700}
+.movementDate{font-size:11px;color:#888;font-weight:400;margin-top:5px}
 </style>
 </head>
 <body>
@@ -58,6 +59,7 @@ input,select{width:100%;border:1px solid #dddfe4;border-radius:11px;padding:13px
   <div id="accounts"></div>
 
   <button class="add" onclick="newAccount()">+ Aggiungi un conto</button>
+  <button class="add income" onclick="openIncome()">+ Aggiungi movimento</button>
   <button class="add transfer" onclick="openTransfer()">⇄ Trasferisci tra conti</button>
 
   <div class="form" id="transferForm">
@@ -78,9 +80,33 @@ input,select{width:100%;border:1px solid #dddfe4;border-radius:11px;padding:13px
     </div>
   </div>
 
+  <div class="form" id="incomeForm">
+    <h2>Nuovo movimento</h2>
+
+    <label for="movementType">Tipo di movimento</label>
+    <select id="movementType">
+      <option value="income">Entrata</option>
+      <option value="expense">Uscita</option>
+    </select>
+
+    <label for="incomeAccount">Su quale conto</label>
+    <select id="incomeAccount"></select>
+
+    <label for="incomeAmount">Importo (€)</label>
+    <input id="incomeAmount" type="number" inputmode="decimal" min="0.01" step="0.01" placeholder="0,00">
+
+    <label for="incomeDescription">Descrizione</label>
+    <input id="incomeDescription" maxlength="80" placeholder="Es. Stipendio, spesa, bolletta">
+
+    <div class="formbuttons">
+      <button class="cancel" onclick="closeIncome()">Annulla</button>
+      <button class="save" onclick="saveIncome()">Salva movimento</button>
+    </div>
+  </div>
+
   <div class="history">
     <div class="historyHead">
-      <h2>Ultimi trasferimenti</h2>
+      <h2>Ultimi movimenti</h2>
       <button class="more" id="showMore" onclick="toggleTransfers()">Mostra altro</button>
     </div>
     <div id="transferHistory"></div>
@@ -112,6 +138,7 @@ const palette = [
 
 let accounts = [];
 let transfers = [];
+let incomes = [];
 let editingId = null;
 let selectedColor = palette[0];
 let showAllTransfers = false;
@@ -130,6 +157,13 @@ try {
   transfers = [];
 }
 
+try {
+  incomes = JSON.parse(localStorage.getItem("rendiconto_entrate")) || [];
+  if (!Array.isArray(incomes)) incomes = [];
+} catch (e) {
+  incomes = [];
+}
+
 const euro = value => Number(value).toLocaleString("it-IT", {
   style:"currency", currency:"EUR"
 });
@@ -137,6 +171,7 @@ const euro = value => Number(value).toLocaleString("it-IT", {
 function persist() {
   localStorage.setItem("rendiconto_conti", JSON.stringify(accounts));
   localStorage.setItem("rendiconto_trasferimenti", JSON.stringify(transfers));
+  localStorage.setItem("rendiconto_entrate", JSON.stringify(incomes));
   render();
 }
 
@@ -200,42 +235,70 @@ function renderTransfers() {
   const button = document.getElementById("showMore");
   container.innerHTML = "";
 
-  button.style.display = transfers.length > 5 ? "block" : "none";
+  const movements = [
+    ...transfers.map(t => ({...t, type:"transfer"})),
+    ...incomes.map(i => ({...i, type:i.type || "income"}))
+  ];
+
+  movements.sort((a, b) => (Number(b.date) || 0) - (Number(a.date) || 0));
+
+  button.style.display = movements.length > 5 ? "block" : "none";
   button.textContent = showAllTransfers ? "Mostra meno" : "Mostra altro";
 
-  const visible = showAllTransfers ? transfers : transfers.slice(0, 5);
+  const visible = showAllTransfers ? movements : movements.slice(0, 5);
 
   if (!visible.length) {
     container.innerHTML =
-      '<div class="empty">Non hai ancora effettuato trasferimenti.</div>';
+      '<div class="empty">Non hai ancora effettuato movimenti.</div>';
     return;
   }
 
-  visible.forEach(t => {
+  visible.forEach(m => {
     const row = document.createElement("div");
     row.className = "transferRow";
 
-    const from = document.createElement("div");
-    from.className = "transferName";
-    from.textContent = t.fromName;
-    from.style.color = t.fromColor;
+    const left = document.createElement("div");
+    left.className = "transferName";
 
     const middle = document.createElement("div");
     middle.className = "transferMiddle";
 
     const amount = document.createElement("span");
     amount.className = "transferAmount";
-    amount.textContent = "+ " + euro(t.amount);
+
+    const right = document.createElement("div");
+    right.className = "transferName";
+    right.style.textAlign = "right";
+
+    if (m.type === "transfer") {
+      left.textContent = m.fromName;
+      left.style.color = m.fromColor;
+
+      amount.textContent = "+ " + euro(m.amount);
+
+      right.textContent = m.toName;
+      right.style.color = m.toColor;
+    } else {
+      left.textContent = m.description || "Entrata";
+      left.style.color = m.type === "expense" ? "#E05260" : "#18A779";
+
+      amount.textContent =
+        (m.type === "expense" ? "− " : "+ ") + euro(m.amount);
+
+      right.textContent = m.accountName;
+      right.style.color = m.accountColor;
+    }
 
     middle.append(amount);
 
-    const to = document.createElement("div");
-    to.className = "transferName";
-    to.textContent = t.toName;
-    to.style.color = t.toColor;
-    to.style.textAlign = "right";
+    const date = document.createElement("div");
+    date.className = "movementDate";
+    date.textContent = m.date
+      ? new Date(m.date).toLocaleDateString("it-IT")
+      : "";
 
-    row.append(from, middle, to);
+    left.append(date);
+    row.append(left, middle, right);
     container.append(row);
   });
 }
@@ -267,6 +330,7 @@ function renderColors() {
 
 function newAccount() {
   closeTransfer();
+  closeIncome();
   editingId = null;
   selectedColor = palette[accounts.length % palette.length];
   document.getElementById("formTitle").textContent = "Nuovo conto";
@@ -279,6 +343,7 @@ function newAccount() {
 
 function editAccount(id) {
   closeTransfer();
+  closeIncome();
   const a = accounts.find(item => item.id === id);
   if (!a) return;
 
@@ -345,6 +410,7 @@ function closeForm() {
 
 function openTransfer() {
   closeForm();
+  closeIncome();
 
   if (accounts.length < 2) {
     alert("Devi avere almeno due conti per effettuare un trasferimento.");
@@ -411,7 +477,8 @@ function saveTransfer() {
     fromColor: from.color,
     toName: to.name,
     toColor: to.color,
-    amount: amount
+    amount: amount,
+    date: Date.now()
   });
 
   persist();
@@ -420,6 +487,80 @@ function saveTransfer() {
 
 function closeTransfer() {
   document.getElementById("transferForm").style.display = "none";
+}
+
+function openIncome() {
+  closeForm();
+  closeTransfer();
+
+  if (!accounts.length) {
+    alert("Devi prima aggiungere almeno un conto.");
+    return;
+  }
+
+  const select = document.getElementById("incomeAccount");
+  select.innerHTML = "";
+
+  accounts.forEach(a => {
+    const option = document.createElement("option");
+    option.value = a.id;
+    option.textContent = a.name + " (" + euro(a.balance) + ")";
+    select.append(option);
+  });
+
+  document.getElementById("movementType").value = "income";
+  document.getElementById("incomeAmount").value = "";
+  document.getElementById("incomeDescription").value = "";
+  document.getElementById("incomeForm").style.display = "block";
+  document.getElementById("incomeForm").scrollIntoView({behavior:"smooth"});
+}
+
+function saveIncome() {
+  const accountId = document.getElementById("incomeAccount").value;
+  const rawAmount = document.getElementById("incomeAmount").value.trim();
+  const amount = Math.round(Number(rawAmount) * 100) / 100;
+  const description =
+    document.getElementById("incomeDescription").value.trim();
+  const type = document.getElementById("movementType").value;
+
+  if (rawAmount === "" || !Number.isFinite(amount) || amount <= 0) {
+    alert("Inserisci un importo valido.");
+    return;
+  }
+
+  const account = accounts.find(a => a.id === accountId);
+
+  if (!account) {
+    alert("Seleziona un conto valido.");
+    return;
+  }
+
+  if (type === "expense" &&
+      Math.round(Number(account.balance) * 100) < Math.round(amount * 100)) {
+    alert("Saldo insufficiente nel conto selezionato.");
+    return;
+  }
+
+  const change = type === "expense" ? -amount : amount;
+
+  account.balance =
+    Math.round((Number(account.balance) + change) * 100) / 100;
+
+  incomes.unshift({
+    type: type,
+    accountName: account.name,
+    accountColor: account.color,
+    description: description || (type === "expense" ? "Uscita" : "Entrata"),
+    amount: amount,
+    date: Date.now()
+  });
+
+  persist();
+  closeIncome();
+}
+
+function closeIncome() {
+  document.getElementById("incomeForm").style.display = "none";
 }
 
 render();
