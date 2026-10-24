@@ -59,10 +59,14 @@ input,select{width:100%;border:1px solid #dddfe4;border-radius:11px;padding:13px
 .assetDetails{flex:1;min-width:0}
 .assetDetails strong{display:block;overflow-wrap:anywhere}
 .assetCategory{font-size:11px;color:#777;margin-top:3px}
-.assetNumbers{font-size:12px;color:#777;margin-top:5px;line-height:1.6}
+.assetNumbers{font-size:12px;color:#777;margin-top:5px;line-height:1.6;overflow-wrap:anywhere}
 .assetValue{font-weight:700;text-align:right;overflow-wrap:anywhere}
 .assetRight{display:flex;flex-direction:column;align-items:flex-end;gap:8px;min-width:0;max-width:48%}
 .updatePrice{border:0;border-radius:9px;background:#e8efff;color:#245fc4;padding:8px 10px;font-size:12px;font-weight:650;white-space:nowrap}
+.assetActions{display:flex;flex-wrap:wrap;justify-content:flex-end;gap:6px}
+.assetActions button{border:0;border-radius:8px;padding:8px;font-size:12px;font-weight:650}
+.editInvestment{background:#f0f1f4;color:#17191d}
+.deleteInvestment{background:#FCE8E8;color:#B42318}
 .sectionMarker{display:inline-block;width:7px;height:7px;border-radius:50%;background:#3978E8;margin-right:7px;vertical-align:middle}
 </style>
 </head>
@@ -439,6 +443,30 @@ function openAccountDetail(id) {
       };
       right.append(updateButton);
 
+      const actions = document.createElement("div");
+      actions.className = "assetActions";
+
+      const editButton = document.createElement("button");
+      editButton.type = "button";
+      editButton.className = "editInvestment";
+      editButton.textContent = "Modifica";
+      editButton.onclick = event => {
+        event.stopPropagation();
+        editInvestment(account.id, investment.name);
+      };
+
+      const deleteButton = document.createElement("button");
+      deleteButton.type = "button";
+      deleteButton.className = "deleteInvestment";
+      deleteButton.textContent = "Elimina";
+      deleteButton.onclick = event => {
+        event.stopPropagation();
+        deleteInvestment(account.id, investment.name);
+      };
+
+      actions.append(editButton, deleteButton);
+      right.append(actions);
+
       row.append(details, right);
       investmentContainer.append(row);
     });
@@ -484,6 +512,139 @@ function updateInvestmentPrice(accountId, assetName) {
 
   investment.currentPrice = currentPrice;
   investment.value = Math.round(quantity * currentPrice * 100) / 100;
+
+  updateAccountBalance(account);
+  persist();
+  openAccountDetail(account.id);
+}
+
+function editInvestment(accountId, assetName) {
+  const account = accounts.find(a => a.id === accountId);
+  if (!account) return;
+
+  const investment = account.investments.find(
+    item => item.name === assetName
+  );
+  if (!investment) return;
+
+  const oldName = investment.name;
+  const oldCategory = investment.category || "Altro";
+  const oldQuantity = Number(investment.quantity);
+  const oldCostBasis = Number(investment.costBasis ?? investment.value) || 0;
+
+  const newNameInput = prompt("Nome dell'investimento:", oldName);
+  if (newNameInput === null) return;
+
+  const newName = newNameInput.trim();
+  if (!newName) {
+    alert("Il nome dell'investimento non può essere vuoto.");
+    return;
+  }
+
+  const duplicate = account.investments.find(
+    item => item !== investment &&
+      item.name.toLocaleLowerCase("it-IT") === newName.toLocaleLowerCase("it-IT")
+  );
+
+  if (duplicate) {
+    alert("Esiste già un investimento con questo nome in questo conto.");
+    return;
+  }
+
+  const categoryList = investmentCategories.join(", ");
+  const newCategoryInput = prompt(
+    "Categoria dell'investimento. Categorie disponibili: " + categoryList,
+    oldCategory
+  );
+
+  if (newCategoryInput === null) return;
+
+  const newCategory = newCategoryInput.trim();
+  if (!newCategory) {
+    alert("La categoria non può essere vuota.");
+    return;
+  }
+
+  if (!investmentCategories.some(
+    item => item.toLocaleLowerCase("it-IT") === newCategory.toLocaleLowerCase("it-IT")
+  )) {
+    investmentCategories.push(newCategory);
+  }
+
+  const quantityInput = prompt(
+    "Quantità totale posseduta:",
+    Number.isFinite(oldQuantity) && oldQuantity > 0 ? String(oldQuantity) : ""
+  );
+
+  if (quantityInput === null) return;
+
+  const normalizedQuantity = quantityInput.trim().replace(",", ".");
+  const newQuantity = Number(normalizedQuantity);
+
+  if (
+    normalizedQuantity === "" ||
+    !Number.isFinite(newQuantity) ||
+    newQuantity <= 0
+  ) {
+    alert("Inserisci una quantità valida, maggiore di zero.");
+    return;
+  }
+
+  const costInput = prompt(
+    "Importo totale speso per questa posizione (€):",
+    String(oldCostBasis)
+  );
+
+  if (costInput === null) return;
+
+  const normalizedCost = costInput.trim().replace(",", ".");
+  const newCostBasis = Number(normalizedCost);
+
+  if (
+    normalizedCost === "" ||
+    !Number.isFinite(newCostBasis) ||
+    newCostBasis < 0
+  ) {
+    alert("Inserisci un importo speso valido, pari o superiore a zero.");
+    return;
+  }
+
+  investment.name = newName;
+  investment.category = newCategory;
+  investment.quantity = newQuantity;
+  investment.costBasis = Math.round(newCostBasis * 100) / 100;
+  investment.averagePrice = newCostBasis / newQuantity;
+
+  if (Number(investment.currentPrice) > 0) {
+    investment.value = Math.round(newQuantity * Number(investment.currentPrice) * 100) / 100;
+  } else {
+    investment.currentPrice = newCostBasis / newQuantity;
+    investment.value = Math.round(newQuantity * investment.currentPrice * 100) / 100;
+  }
+
+  updateAccountBalance(account);
+  persist();
+  openAccountDetail(account.id);
+}
+
+function deleteInvestment(accountId, assetName) {
+  const account = accounts.find(a => a.id === accountId);
+  if (!account) return;
+
+  const investment = account.investments.find(
+    item => item.name === assetName
+  );
+  if (!investment) return;
+
+  const confirmed = confirm(
+    'Vuoi eliminare l\'investimento "' + investment.name + '"? Il valore verrà rimosso dal patrimonio, senza aggiungere denaro alla liquidità.'
+  );
+
+  if (!confirmed) return;
+
+  account.investments = account.investments.filter(
+    item => item !== investment
+  );
 
   updateAccountBalance(account);
   persist();
