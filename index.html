@@ -61,6 +61,8 @@ input,select{width:100%;border:1px solid #dddfe4;border-radius:11px;padding:13px
 .assetCategory{font-size:11px;color:#777;margin-top:3px}
 .assetNumbers{font-size:12px;color:#777;margin-top:5px;line-height:1.6}
 .assetValue{font-weight:700;text-align:right;overflow-wrap:anywhere}
+.assetRight{display:flex;flex-direction:column;align-items:flex-end;gap:8px;min-width:0;max-width:48%}
+.updatePrice{border:0;border-radius:9px;background:#e8efff;color:#245fc4;padding:8px 10px;font-size:12px;font-weight:650;white-space:nowrap}
 .sectionMarker{display:inline-block;width:7px;height:7px;border-radius:50%;background:#3978E8;margin-right:7px;vertical-align:middle}
 </style>
 </head>
@@ -134,18 +136,15 @@ input,select{width:100%;border:1px solid #dddfe4;border-radius:11px;padding:13px
     <label for="investmentName">Nome dell'investimento</label>
     <input id="investmentName" maxlength="50" placeholder="Es. BTC, Apple">
 
-    <label for="internalTransferAmount">Importo investito (€)</label>
+    <label for="internalTransferAmount">Importo speso (€)</label>
     <input id="internalTransferAmount" type="number" inputmode="decimal" min="0.01" step="0.01" placeholder="0,00">
 
-    <label for="investmentQuantity">Quantità acquistata (facoltativa)</label>
-    <input id="investmentQuantity" type="number" inputmode="decimal" min="0.00000001" step="any" placeholder="Es. 3">
-
-    <label for="investmentUnitPrice">Prezzo unitario (€) (facoltativo)</label>
-    <input id="investmentUnitPrice" type="number" inputmode="decimal" min="0.00000001" step="any" placeholder="Es. 200">
+    <label for="investmentQuantity">Quantità effettivamente ricevuta</label>
+    <input id="investmentQuantity" type="number" inputmode="decimal" min="0.00000001" step="any" placeholder="Es. 0,01">
 
     <div class="formbuttons">
       <button class="cancel" onclick="closeInternalTransfer()">Annulla</button>
-      <button class="save" onclick="saveInternalTransfer()">Trasferisci</button>
+      <button class="save" onclick="saveInternalTransfer()">Registra acquisto</button>
     </div>
   </div>
 
@@ -273,17 +272,32 @@ accounts.forEach(account => {
     if (investment.costBasis === undefined || investment.costBasis === null) {
       investment.costBasis = Number(investment.value) || 0;
     }
+
     if (investment.quantity === undefined || investment.quantity === null) {
       investment.quantity = null;
     }
+
     if (!investment.category) {
       investment.category = "Altro";
     }
+
     if (investment.averagePrice === undefined || investment.averagePrice === null) {
       const quantity = Number(investment.quantity);
       investment.averagePrice = quantity > 0
         ? Number(investment.costBasis) / quantity
         : null;
+    }
+
+    if (investment.currentPrice === undefined || investment.currentPrice === null) {
+      const quantity = Number(investment.quantity);
+      const value = Number(investment.value);
+      investment.currentPrice = quantity > 0 && value >= 0
+        ? value / quantity
+        : null;
+    }
+
+    if (Number(investment.quantity) > 0 && Number(investment.currentPrice) > 0) {
+      investment.value = Number(investment.quantity) * Number(investment.currentPrice);
     }
   });
 
@@ -384,6 +398,8 @@ function openAccountDetail(id) {
 
       const quantity = Number(investment.quantity);
       const averagePrice = Number(investment.averagePrice);
+      const currentPrice = Number(investment.currentPrice);
+
       const numbers = document.createElement("div");
       numbers.className = "assetNumbers";
 
@@ -393,25 +409,85 @@ function openAccountDetail(id) {
         });
 
         if (Number.isFinite(averagePrice) && averagePrice > 0) {
-          numbers.textContent += " · Prezzo medio: " + euro(averagePrice);
+          numbers.textContent += " · Costo medio: " + euro(averagePrice);
+        }
+
+        if (Number.isFinite(currentPrice) && currentPrice > 0) {
+          numbers.textContent += " · Prezzo di riferimento: " + euro(currentPrice);
         }
       } else {
-        numbers.textContent = "Quantità e prezzo medio non disponibili";
+        numbers.textContent = "Quantità non disponibile: valore storico conservato";
       }
 
       details.append(numbers);
 
+      const right = document.createElement("div");
+      right.className = "assetRight";
+
       const value = document.createElement("div");
       value.className = "assetValue";
       value.textContent = euro(investment.value);
+      right.append(value);
 
-      row.append(details, value);
+      const updateButton = document.createElement("button");
+      updateButton.type = "button";
+      updateButton.className = "updatePrice";
+      updateButton.textContent = "Aggiorna prezzo";
+      updateButton.onclick = event => {
+        event.stopPropagation();
+        updateInvestmentPrice(account.id, investment.name);
+      };
+      right.append(updateButton);
+
+      row.append(details, right);
       investmentContainer.append(row);
     });
   }
 
   document.getElementById("accountDetail").style.display = "block";
   document.getElementById("accountDetail").scrollIntoView({behavior:"smooth"});
+}
+
+function updateInvestmentPrice(accountId, assetName) {
+  const account = accounts.find(a => a.id === accountId);
+  if (!account) return;
+
+  const investment = account.investments.find(
+    item => item.name === assetName
+  );
+  if (!investment) return;
+
+  const quantity = Number(investment.quantity);
+
+  if (!Number.isFinite(quantity) || quantity <= 0) {
+    alert("Per calcolare il valore di questo investimento serve conoscere la quantità posseduta. Il valore già registrato viene conservato.");
+    return;
+  }
+
+  const rawPrice = prompt(
+    "Inserisci il prezzo corrente per unità di " + investment.name + " in euro:"
+  );
+
+  if (rawPrice === null) return;
+
+  const normalizedPrice = rawPrice.trim().replace(",", ".");
+  const currentPrice = Number(normalizedPrice);
+
+  if (
+    normalizedPrice === "" ||
+    !Number.isFinite(currentPrice) ||
+    currentPrice <= 0
+  ) {
+    alert("Inserisci un prezzo corrente valido, maggiore di zero.");
+    return;
+  }
+
+  investment.currentPrice = currentPrice;
+  investment.value = Math.round(quantity * currentPrice * 100) / 100;
+
+  updateAccountBalance(account);
+  persist();
+  openAccountDetail(account.id);
 }
 
 function closeAccountDetail() {
@@ -772,11 +848,10 @@ function openInternalTransfer() {
 
   internalTransferAccountId = account.id;
   document.getElementById("internalTransferTitle").textContent =
-    "Trasferimento da " + account.name + " agli investimenti";
+    "Acquisto da " + account.name + " agli investimenti";
   document.getElementById("investmentName").value = "";
   document.getElementById("internalTransferAmount").value = "";
   document.getElementById("investmentQuantity").value = "";
-  document.getElementById("investmentUnitPrice").value = "";
   renderInvestmentCategories("Azioni");
   document.getElementById("internalTransferForm").style.display = "block";
   document.getElementById("internalTransferForm").scrollIntoView({behavior:"smooth"});
@@ -793,7 +868,6 @@ function saveInternalTransfer() {
   const category = document.getElementById("investmentCategory").value;
   const rawAmount = document.getElementById("internalTransferAmount").value.trim();
   const rawQuantity = document.getElementById("investmentQuantity").value.trim();
-  const rawPrice = document.getElementById("investmentUnitPrice").value.trim();
   const amount = Math.round(Number(rawAmount) * 100) / 100;
 
   if (!assetName) {
@@ -807,46 +881,28 @@ function saveInternalTransfer() {
   }
 
   if (rawAmount === "" || !Number.isFinite(amount) || amount <= 0) {
-    alert("Inserisci un importo valido.");
+    alert("Inserisci un importo speso valido.");
     return;
   }
 
-  let quantity = null;
-  let unitPrice = null;
-
-  if (rawQuantity !== "") {
-    quantity = Number(rawQuantity);
-    if (!Number.isFinite(quantity) || quantity <= 0) {
-      alert("Inserisci una quantità valida.");
-      return;
-    }
+  if (rawQuantity === "") {
+    alert("Inserisci la quantità effettivamente ricevuta.");
+    return;
   }
 
-  if (rawPrice !== "") {
-    unitPrice = Number(rawPrice);
-    if (!Number.isFinite(unitPrice) || unitPrice <= 0) {
-      alert("Inserisci un prezzo unitario valido.");
-      return;
-    }
-  }
+  const quantity = Number(rawQuantity);
 
-  if (quantity === null && unitPrice !== null) {
-    quantity = amount / unitPrice;
-  } else if (quantity !== null && unitPrice === null) {
-    unitPrice = amount / quantity;
-  } else if (quantity !== null && unitPrice !== null) {
-    const calculatedAmount = quantity * unitPrice;
-    if (Math.abs(calculatedAmount - amount) > 0.02) {
-      alert("L'importo investito deve corrispondere alla quantità moltiplicata per il prezzo unitario.");
-      return;
-    }
-    unitPrice = amount / quantity;
+  if (!Number.isFinite(quantity) || quantity <= 0) {
+    alert("Inserisci una quantità ricevuta valida.");
+    return;
   }
 
   if (Math.round(Number(account.liquidity) * 100) < Math.round(amount * 100)) {
     alert("Liquidità insufficiente nel conto selezionato.");
     return;
   }
+
+  const purchaseUnitPrice = amount / quantity;
 
   account.liquidity = Math.round((Number(account.liquidity) - amount) * 100) / 100;
 
@@ -855,32 +911,38 @@ function saveInternalTransfer() {
   );
 
   if (investment) {
+    const oldQuantity = Number(investment.quantity);
     const oldCostBasis = Number(investment.costBasis ?? investment.value) || 0;
-    const oldQuantity = Number(investment.quantity) || 0;
 
-    investment.value = Math.round((Number(investment.value) + amount) * 100) / 100;
-    investment.costBasis = Math.round((oldCostBasis + amount) * 100) / 100;
-    investment.category = category;
+    if (Number.isFinite(oldQuantity) && oldQuantity > 0) {
+      const totalQuantity = oldQuantity + quantity;
+      const totalCostBasis = oldCostBasis + amount;
 
-    if (quantity !== null) {
-      investment.quantity = oldQuantity + quantity;
-    } else if (oldQuantity > 0) {
-      investment.quantity = oldQuantity;
-    }
-
-    if (Number(investment.quantity) > 0) {
-      investment.averagePrice = investment.costBasis / Number(investment.quantity);
+      investment.quantity = totalQuantity;
+      investment.costBasis = Math.round(totalCostBasis * 100) / 100;
+      investment.averagePrice = totalCostBasis / totalQuantity;
+      investment.currentPrice = purchaseUnitPrice;
+      investment.value = Math.round(totalQuantity * purchaseUnitPrice * 100) / 100;
     } else {
-      investment.averagePrice = null;
+      const oldValue = Number(investment.value) || 0;
+
+      investment.quantity = quantity;
+      investment.costBasis = Math.round(amount * 100) / 100;
+      investment.averagePrice = purchaseUnitPrice;
+      investment.currentPrice = purchaseUnitPrice;
+      investment.value = Math.round((oldValue + amount) * 100) / 100;
     }
+
+    investment.category = category;
   } else {
     investment = {
       name: assetName,
       category: category,
-      value: amount,
+      value: Math.round(quantity * purchaseUnitPrice * 100) / 100,
       costBasis: amount,
       quantity: quantity,
-      averagePrice: quantity !== null && quantity > 0 ? amount / quantity : null
+      averagePrice: purchaseUnitPrice,
+      currentPrice: purchaseUnitPrice
     };
     account.investments.push(investment);
   }
