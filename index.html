@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="it">
 <head>
@@ -51,6 +50,9 @@ input,select{width:100%;border:1px solid #dddfe4;border-radius:11px;padding:13px
 .detailActions .delete{background:#FCE8E8;color:#B42318}
 .composition{background:#f5f6f8;border-radius:13px;padding:14px;margin-top:12px}
 .compositionTitle{font-size:12px;color:#777;font-weight:650;letter-spacing:.5px;margin-bottom:10px}
+.compositionHeader{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:10px}
+.compositionHeader .compositionTitle{margin-bottom:0}
+.sellButton{border:0;border-radius:9px;background:#17191d;color:white;padding:8px 12px;font-size:12px;font-weight:650;white-space:nowrap}
 .compositionRow{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:9px 0;font-size:14px}
 .compositionRow+.compositionRow{border-top:1px solid #e3e5e9}
 .compositionRow strong{overflow-wrap:anywhere;text-align:right}
@@ -94,8 +96,32 @@ input,select{width:100%;border:1px solid #dddfe4;border-radius:11px;padding:13px
     </div>
 
     <div class="composition">
-      <div class="compositionTitle"><span class="sectionMarker"></span>INVESTIMENTI</div>
+      <div class="compositionHeader">
+        <div class="compositionTitle"><span class="sectionMarker"></span>INVESTIMENTI</div>
+        <button class="sellButton" type="button" onclick="openSale()">Vendi</button>
+      </div>
       <div id="detailInvestments"></div>
+    </div>
+
+    <div class="form" id="saleForm">
+      <h2>Vendi investimento</h2>
+
+      <label for="saleInvestment">Quale investimento vuoi vendere?</label>
+      <select id="saleInvestment" onchange="updateSaleQuantityLabel()"></select>
+
+      <label for="saleQuantity" id="saleQuantityLabel">Quantità da vendere</label>
+      <input id="saleQuantity" type="number" inputmode="decimal" min="0.00000001" step="any" placeholder="Quantità">
+
+      <label for="saleAmount">Importo totale incassato (€)</label>
+      <input id="saleAmount" type="number" inputmode="decimal" min="0.01" step="0.01" placeholder="0,00">
+
+      <label for="saleCommission">Commissione (€), facoltativa</label>
+      <input id="saleCommission" type="number" inputmode="decimal" min="0" step="0.01" placeholder="0,00">
+
+      <div class="formbuttons">
+        <button class="cancel" onclick="closeSale()">Annulla</button>
+        <button class="save" onclick="saveSale()">Registra vendita</button>
+      </div>
     </div>
 
     <button class="add transfer" onclick="openInternalTransfer()">⇄ Trasferisci in investimenti</button>
@@ -366,6 +392,7 @@ function openAccountDetail(id) {
   closeTransfer();
   closeInternalTransfer();
   closeIncome();
+  closeSale();
 
   const account = accounts.find(a => a.id === id);
   if (!account) return;
@@ -474,6 +501,195 @@ function openAccountDetail(id) {
 
   document.getElementById("accountDetail").style.display = "block";
   document.getElementById("accountDetail").scrollIntoView({behavior:"smooth"});
+}
+
+function openSale() {
+  if (selectedAccountId === null) return;
+
+  const account = accounts.find(a => a.id === selectedAccountId);
+  if (!account) return;
+
+  const availableInvestments = (account.investments || []).filter(
+    investment => Number(investment.quantity) > 0
+  );
+
+  if (!availableInvestments.length) {
+    alert("Non ci sono investimenti con una quantità disponibile da vendere.");
+    return;
+  }
+
+  closeForm();
+  closeTransfer();
+  closeInternalTransfer();
+  closeIncome();
+
+  const select = document.getElementById("saleInvestment");
+  select.innerHTML = "";
+
+  availableInvestments.forEach(investment => {
+    const option = document.createElement("option");
+    option.value = investment.name;
+    option.textContent = investment.name + " — disponibili: " +
+      Number(investment.quantity).toLocaleString("it-IT", {
+        maximumFractionDigits: 8
+      });
+    select.append(option);
+  });
+
+  document.getElementById("saleQuantity").value = "";
+  document.getElementById("saleAmount").value = "";
+  document.getElementById("saleCommission").value = "";
+  document.getElementById("saleForm").style.display = "block";
+  updateSaleQuantityLabel();
+  document.getElementById("saleForm").scrollIntoView({behavior:"smooth"});
+}
+
+function updateSaleQuantityLabel() {
+  const account = accounts.find(a => a.id === selectedAccountId);
+  const assetName = document.getElementById("saleInvestment").value;
+  const investment = account && account.investments.find(
+    item => item.name === assetName
+  );
+
+  const label = document.getElementById("saleQuantityLabel");
+
+  if (investment) {
+    label.textContent = "Quantità da vendere (disponibili: " +
+      Number(investment.quantity).toLocaleString("it-IT", {
+        maximumFractionDigits: 8
+      }) + ")";
+  } else {
+    label.textContent = "Quantità da vendere";
+  }
+}
+
+function saveSale() {
+  const account = accounts.find(a => a.id === selectedAccountId);
+  if (!account) {
+    alert("Seleziona un conto valido.");
+    return;
+  }
+
+  const assetName = document.getElementById("saleInvestment").value;
+  const investment = account.investments.find(
+    item => item.name === assetName
+  );
+
+  if (!investment) {
+    alert("Seleziona un investimento valido.");
+    return;
+  }
+
+  const rawQuantity = document.getElementById("saleQuantity").value.trim();
+  const rawAmount = document.getElementById("saleAmount").value.trim();
+  const rawCommission = document.getElementById("saleCommission").value.trim();
+
+  const quantitySold = Number(rawQuantity);
+  const grossAmount = Math.round(Number(rawAmount) * 100) / 100;
+  const commission = rawCommission === ""
+    ? 0
+    : Math.round(Number(rawCommission) * 100) / 100;
+
+  const availableQuantity = Number(investment.quantity);
+
+  if (
+    rawQuantity === "" ||
+    !Number.isFinite(quantitySold) ||
+    quantitySold <= 0
+  ) {
+    alert("Inserisci una quantità da vendere valida, maggiore di zero.");
+    return;
+  }
+
+  if (quantitySold > availableQuantity + 1e-10) {
+    alert("La quantità da vendere supera quella attualmente posseduta.");
+    return;
+  }
+
+  if (
+    rawAmount === "" ||
+    !Number.isFinite(grossAmount) ||
+    grossAmount <= 0
+  ) {
+    alert("Inserisci l'importo totale incassato, maggiore di zero.");
+    return;
+  }
+
+  if (
+    !Number.isFinite(commission) ||
+    commission < 0
+  ) {
+    alert("Inserisci una commissione valida, pari o superiore a zero.");
+    return;
+  }
+
+  if (commission > grossAmount) {
+    alert("La commissione non può superare l'importo totale incassato.");
+    return;
+  }
+
+  const netAmount = Math.round((grossAmount - commission) * 100) / 100;
+  const oldQuantity = availableQuantity;
+  const oldCostBasis = Math.max(
+    0,
+    Number(investment.costBasis ?? investment.value) || 0
+  );
+  const oldAveragePrice = Number(investment.averagePrice);
+  const averageCost = Number.isFinite(oldAveragePrice) && oldAveragePrice >= 0
+    ? oldAveragePrice
+    : oldCostBasis / oldQuantity;
+  const costBasisSold = oldCostBasis * (quantitySold / oldQuantity);
+  const remainingQuantity = Math.max(0, oldQuantity - quantitySold);
+
+  account.liquidity = Math.round(
+    (Number(account.liquidity) + netAmount) * 100
+  ) / 100;
+
+  if (remainingQuantity <= 1e-10) {
+    account.investments = account.investments.filter(
+      item => item !== investment
+    );
+  } else {
+    investment.quantity = remainingQuantity;
+    investment.costBasis = Math.round(
+      Math.max(0, oldCostBasis - costBasisSold) * 100
+    ) / 100;
+    investment.averagePrice = investment.costBasis / remainingQuantity;
+
+    const currentPrice = Number(investment.currentPrice);
+
+    if (Number.isFinite(currentPrice) && currentPrice > 0) {
+      investment.value = Math.round(remainingQuantity * currentPrice * 100) / 100;
+    } else {
+      investment.value = Math.round(
+        (Number(investment.value) / oldQuantity) * remainingQuantity * 100
+      ) / 100;
+    }
+  }
+
+  updateAccountBalance(account);
+
+  incomes.unshift({
+    type: "sale",
+    accountName: account.name,
+    accountColor: account.color,
+    description: "Vendita " + investment.name,
+    assetName: investment.name,
+    quantity: quantitySold,
+    grossAmount: grossAmount,
+    commission: commission,
+    costBasisSold: Math.round(costBasisSold * 100) / 100,
+    amount: netAmount,
+    date: Date.now()
+  });
+
+  persist();
+  closeSale();
+  openAccountDetail(account.id);
+}
+
+function closeSale() {
+  document.getElementById("saleForm").style.display = "none";
 }
 
 function updateInvestmentPrice(accountId, assetName) {
@@ -652,6 +868,7 @@ function deleteInvestment(accountId, assetName) {
 }
 
 function closeAccountDetail() {
+  closeSale();
   document.getElementById("accountDetail").style.display = "none";
   selectedAccountId = null;
 }
@@ -729,6 +946,24 @@ function renderTransfers() {
       } else {
         middle.append(amount);
       }
+    } else if (m.type === "sale") {
+      left.textContent = m.description || "Vendita investimento";
+      left.style.color = "#18A779";
+
+      amount.textContent = "+ " + euro(m.amount);
+
+      right.textContent = m.accountName;
+      right.style.color = m.accountColor;
+
+      const asset = document.createElement("span");
+      asset.className = "assetName";
+      asset.textContent = (m.assetName || "Investimento") +
+        (Number(m.quantity) > 0
+          ? " · Quantità: " + Number(m.quantity).toLocaleString("it-IT", {
+              maximumFractionDigits: 8
+            })
+          : "");
+      middle.append(amount, asset);
     } else {
       left.textContent = m.description || "Entrata";
       left.style.color = m.type === "expense" ? "#E05260" : "#18A779";
@@ -829,6 +1064,7 @@ function newAccount() {
   closeTransfer();
   closeInternalTransfer();
   closeIncome();
+  closeSale();
   editingId = null;
   selectedColor = palette[accounts.length % palette.length];
   document.getElementById("formTitle").textContent = "Nuovo conto";
@@ -844,6 +1080,7 @@ function editAccount(id) {
   closeTransfer();
   closeInternalTransfer();
   closeIncome();
+  closeSale();
 
   const a = accounts.find(item => item.id === id);
   if (!a) return;
@@ -917,6 +1154,7 @@ function openTransfer() {
   closeAccountDetail();
   closeInternalTransfer();
   closeIncome();
+  closeSale();
 
   if (accounts.length < 2) {
     alert("Devi avere almeno due conti per effettuare un trasferimento.");
@@ -1006,6 +1244,7 @@ function openInternalTransfer() {
   closeForm();
   closeTransfer();
   closeIncome();
+  closeSale();
 
   internalTransferAccountId = account.id;
   document.getElementById("internalTransferTitle").textContent =
@@ -1136,6 +1375,7 @@ function openIncome() {
   closeTransfer();
   closeInternalTransfer();
   closeAccountDetail();
+  closeSale();
 
   if (!accounts.length) {
     alert("Devi prima aggiungere almeno un conto.");
