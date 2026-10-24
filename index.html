@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="it">
 <head>
@@ -44,7 +45,6 @@ input,select{width:100%;border:1px solid #dddfe4;border-radius:11px;padding:13px
 .transferAmount{font-size:14px;font-weight:700}
 .assetName{font-size:11px;color:#777;font-weight:600}
 .movementDate{font-size:11px;color:#888;font-weight:400;margin-top:5px}
-.movementLeft{display:flex;align-items:flex-start;gap:7px;min-width:0;flex:1}
 .movementEdit{border:0;background:transparent;color:#9aa0a6;border-radius:8px;padding:5px;font-size:19px;line-height:1;flex-shrink:0;margin-left:2px}
 .detailBalance{font-size:30px;font-weight:750;margin:10px 0 20px;overflow-wrap:anywhere}
 .detailActions{display:flex;gap:10px;margin-top:18px}
@@ -72,7 +72,7 @@ input,select{width:100%;border:1px solid #dddfe4;border-radius:11px;padding:13px
 .editInvestment{background:#f0f1f4;color:#17191d}
 .deleteInvestment{background:#FCE8E8;color:#B42318}
 .sectionMarker{display:inline-block;width:7px;height:7px;border-radius:50%;background:#3978E8;margin-right:7px;vertical-align:middle}
-.deleteMovement{background:#FCE8E8!important;color:#B42318}
+.movementHint{font-size:12px;color:#777;line-height:1.5;margin-top:12px}
 </style>
 </head>
 <body>
@@ -108,22 +108,14 @@ input,select{width:100%;border:1px solid #dddfe4;border-radius:11px;padding:13px
 
     <div class="form" id="saleForm">
       <h2>Vendi investimento</h2>
-
       <label for="saleInvestment">Quale investimento vuoi vendere?</label>
       <select id="saleInvestment" onchange="updateSaleQuantityLabel()"></select>
-
       <label for="saleQuantity" id="saleQuantityLabel">Quantità da vendere</label>
       <input id="saleQuantity" type="number" inputmode="decimal" min="0.00000001" step="any" placeholder="Quantità">
-
       <label for="saleAmount">Importo totale incassato (€)</label>
       <input id="saleAmount" type="number" inputmode="decimal" min="0.01" step="0.01" placeholder="0,00">
-
       <label for="saleCommission">Commissione (€), facoltativa</label>
       <input id="saleCommission" type="number" inputmode="decimal" min="0" step="0.01" placeholder="0,00">
-
-      <label for="saleDate">Data della vendita</label>
-      <input id="saleDate" type="date">
-
       <div class="formbuttons">
         <button class="cancel" onclick="closeSale()">Annulla</button>
         <button class="save" onclick="saveSale()">Registra vendita</button>
@@ -131,7 +123,6 @@ input,select{width:100%;border:1px solid #dddfe4;border-radius:11px;padding:13px
     </div>
 
     <button class="add transfer" onclick="openInternalTransfer()">⇄ Trasferisci in investimenti</button>
-
     <div class="detailActions">
       <button onclick="editSelectedAccount()">Modifica</button>
       <button class="delete" onclick="deleteSelectedAccount()">Elimina</button>
@@ -147,19 +138,12 @@ input,select{width:100%;border:1px solid #dddfe4;border-radius:11px;padding:13px
 
   <div class="form" id="transferForm">
     <h2>Trasferimento</h2>
-
     <label for="from">Da quale conto</label>
     <select id="from"></select>
-
     <label for="to">A quale conto</label>
     <select id="to"></select>
-
     <label for="transferAmount">Importo da trasferire (€)</label>
     <input id="transferAmount" type="number" inputmode="decimal" min="0.01" step="0.01" placeholder="0,00">
-
-    <label for="transferDate">Data del trasferimento</label>
-    <input id="transferDate" type="date">
-
     <div class="formbuttons">
       <button class="cancel" onclick="closeTransfer()">Annulla</button>
       <button class="save" onclick="saveTransfer()">Trasferisci</button>
@@ -168,22 +152,14 @@ input,select{width:100%;border:1px solid #dddfe4;border-radius:11px;padding:13px
 
   <div class="form" id="internalTransferForm">
     <h2 id="internalTransferTitle">Trasferimento in investimenti</h2>
-
     <label for="investmentCategory">Categoria</label>
     <select id="investmentCategory" onchange="handleCategoryChange()"></select>
-
     <label for="investmentName">Nome dell'investimento</label>
     <input id="investmentName" maxlength="50" placeholder="Es. BTC, Apple">
-
     <label for="internalTransferAmount">Importo speso (€)</label>
     <input id="internalTransferAmount" type="number" inputmode="decimal" min="0.01" step="0.01" placeholder="0,00">
-
     <label for="investmentQuantity">Quantità effettivamente ricevuta</label>
     <input id="investmentQuantity" type="number" inputmode="decimal" min="0.00000001" step="any" placeholder="Es. 0,01">
-
-    <label for="purchaseDate">Data dell'acquisto</label>
-    <input id="purchaseDate" type="date">
-
     <div class="formbuttons">
       <button class="cancel" onclick="closeInternalTransfer()">Annulla</button>
       <button class="save" onclick="saveInternalTransfer()">Registra acquisto</button>
@@ -192,39 +168,21 @@ input,select{width:100%;border:1px solid #dddfe4;border-radius:11px;padding:13px
 
   <div class="form" id="incomeForm">
     <h2>Nuovo movimento</h2>
-
     <label for="movementType">Tipo di movimento</label>
     <select id="movementType">
       <option value="income">Entrata</option>
       <option value="expense">Uscita</option>
     </select>
-
     <label for="incomeAccount">Su quale conto</label>
     <select id="incomeAccount"></select>
-
     <label for="incomeAmount">Importo (€)</label>
     <input id="incomeAmount" type="number" inputmode="decimal" min="0.01" step="0.01" placeholder="0,00">
-
     <label for="incomeDescription">Descrizione</label>
     <input id="incomeDescription" maxlength="80" placeholder="Es. Stipendio, spesa, bolletta">
-
-    <label for="incomeDate">Data del movimento</label>
-    <input id="incomeDate" type="date">
-
     <div class="formbuttons">
       <button class="cancel" onclick="closeIncome()">Annulla</button>
       <button class="save" onclick="saveIncome()">Salva movimento</button>
     </div>
-  </div>
-
-  <div class="form" id="movementEditForm">
-    <h2>Modifica movimento</h2>
-    <div id="movementEditFields"></div>
-    <div class="formbuttons">
-      <button class="cancel" onclick="closeMovementEdit()">Annulla</button>
-      <button class="save" onclick="saveMovementEdit()">Salva modifiche</button>
-    </div>
-    <button class="add deleteMovement" onclick="deleteEditedMovement()">Elimina movimento</button>
   </div>
 
   <div class="history">
@@ -235,17 +193,59 @@ input,select{width:100%;border:1px solid #dddfe4;border-radius:11px;padding:13px
     <div id="transferHistory"></div>
   </div>
 
+  <div class="form" id="movementEditForm">
+    <h2>Modifica movimento</h2>
+    <label for="editMovementType">Tipo di movimento</label>
+    <select id="editMovementType" onchange="updateMovementEditorFields()">
+      <option value="income">Entrata</option>
+      <option value="expense">Uscita</option>
+      <option value="transfer">Trasferimento tra conti</option>
+      <option value="purchase">Acquisto investimento</option>
+      <option value="sale">Vendita investimento</option>
+    </select>
+
+    <label for="editMovementAccount">Conto</label>
+    <select id="editMovementAccount"></select>
+
+    <div id="editTransferFields" style="display:none">
+      <label for="editFromAccount">Conto di partenza</label>
+      <select id="editFromAccount"></select>
+      <label for="editToAccount">Conto di destinazione</label>
+      <select id="editToAccount"></select>
+    </div>
+
+    <label for="editMovementAmount">Importo (€)</label>
+    <input id="editMovementAmount" type="number" inputmode="decimal" step="0.01" placeholder="Lascia vuoto se non noto">
+
+    <label for="editMovementDescription">Descrizione / investimento</label>
+    <input id="editMovementDescription" maxlength="100" placeholder="Facoltativo">
+
+    <div id="editInvestmentFields" style="display:none">
+      <label for="editMovementQuantity">Quantità</label>
+      <input id="editMovementQuantity" type="number" inputmode="decimal" step="any" placeholder="Lascia vuoto se non nota">
+      <label for="editMovementCommission">Commissione (€)</label>
+      <input id="editMovementCommission" type="number" inputmode="decimal" step="0.01" placeholder="0,00">
+    </div>
+
+    <label for="editMovementDate">Data del movimento</label>
+    <input id="editMovementDate" type="date">
+
+    <div class="movementHint">Puoi correggere un movimento anche se alcuni dati sono mancanti. Se il conto o l'importo non sono disponibili, il movimento viene comunque salvato con i dati inseriti.</div>
+
+    <div class="formbuttons">
+      <button class="cancel" onclick="closeMovementEditor()">Annulla</button>
+      <button class="save" onclick="saveMovementEdit()">Salva modifiche</button>
+    </div>
+  </div>
+
   <div class="form" id="form">
     <h2 id="formTitle">Nuovo conto</h2>
     <label for="name">Nome del conto</label>
     <input id="name" placeholder="Es. Intesa, Poste, Contanti" maxlength="50">
-
     <label for="balance">Saldo attuale (€)</label>
     <input id="balance" type="number" inputmode="decimal" step="0.01" placeholder="0,00">
-
     <label>Colore del conto</label>
     <div class="colors" id="colors"></div>
-
     <div class="formbuttons">
       <button class="cancel" onclick="closeForm()">Annulla</button>
       <button class="save" onclick="saveAccount()">Salva</button>
@@ -254,14 +254,8 @@ input,select{width:100%;border:1px solid #dddfe4;border-radius:11px;padding:13px
 </div>
 
 <script>
-const palette = [
-  "#3978E8","#18A779","#9659D8","#F19A38",
-  "#E05260","#16A6B6","#6B7280","#D3A72F"
-];
-
-const defaultInvestmentCategories = [
-  "Azioni","Criptovalute","ETF","Obbligazioni","Altro"
-];
+const palette = ["#3978E8","#18A779","#9659D8","#F19A38","#E05260","#16A6B6","#6B7280","#D3A72F"];
+const defaultInvestmentCategories = ["Azioni","Criptovalute","ETF","Obbligazioni","Altro"];
 
 let investmentCategories = [...defaultInvestmentCategories];
 let accounts = [];
@@ -274,50 +268,33 @@ let selectedColor = palette[0];
 let showAllTransfers = false;
 let editingMovement = null;
 
-function todayInputDate() {
-  const now = new Date();
-  return now.getFullYear() + "-" +
-    String(now.getMonth() + 1).padStart(2, "0") + "-" +
-    String(now.getDate()).padStart(2, "0");
+function makeId() {
+  return Date.now().toString(36) + Math.random().toString(36).slice(2);
 }
 
-function dateToInput(value) {
-  const date = new Date(Number(value) || Date.now());
-  return date.getFullYear() + "-" +
-    String(date.getMonth() + 1).padStart(2, "0") + "-" +
-    String(date.getDate()).padStart(2, "0");
-}
-
-function inputDateToTimestamp(value) {
-  if (!value) return Date.now();
-  const parts = value.split("-").map(Number);
-  return new Date(parts[0], parts[1] - 1, parts[2], 12, 0, 0, 0).getTime();
-}
-
-function movementId() {
-  return Date.now().toString() + Math.random().toString(16).slice(2);
+function normalizeMovementIds() {
+  transfers.forEach((item, index) => {
+    if (!item.id) item.id = "legacy-transfer-" + index + "-" + String(item.date || 0);
+  });
+  incomes.forEach((item, index) => {
+    if (!item.id) item.id = "legacy-income-" + index + "-" + String(item.date || 0);
+  });
 }
 
 try {
   accounts = JSON.parse(localStorage.getItem("rendiconto_conti")) || [];
   if (!Array.isArray(accounts)) accounts = [];
-} catch (e) {
-  accounts = [];
-}
+} catch (e) { accounts = []; }
 
 try {
   transfers = JSON.parse(localStorage.getItem("rendiconto_trasferimenti")) || [];
   if (!Array.isArray(transfers)) transfers = [];
-} catch (e) {
-  transfers = [];
-}
+} catch (e) { transfers = []; }
 
 try {
   incomes = JSON.parse(localStorage.getItem("rendiconto_entrate")) || [];
   if (!Array.isArray(incomes)) incomes = [];
-} catch (e) {
-  incomes = [];
-}
+} catch (e) { incomes = []; }
 
 try {
   const savedCategories = JSON.parse(localStorage.getItem("rendiconto_categorie_investimenti")) || [];
@@ -328,10 +305,10 @@ try {
   investmentCategories = [...defaultInvestmentCategories];
 }
 
+normalizeMovementIds();
+
 function investmentTotal(account) {
-  return (account.investments || []).reduce(
-    (sum, investment) => sum + (Number(investment.value) || 0), 0
-  );
+  return (account.investments || []).reduce((sum, investment) => sum + (Number(investment.value) || 0), 0);
 }
 
 function updateAccountBalance(account) {
@@ -341,18 +318,13 @@ function updateAccountBalance(account) {
 
 accounts.forEach(account => {
   if (!Array.isArray(account.investments)) account.investments = [];
-
   if (account.liquidity === undefined || account.liquidity === null) {
     account.liquidity = (Number(account.balance) || 0) - investmentTotal(account);
   }
 
   account.investments.forEach(investment => {
-    if (investment.costBasis === undefined || investment.costBasis === null) {
-      investment.costBasis = Number(investment.value) || 0;
-    }
-    if (investment.quantity === undefined || investment.quantity === null) {
-      investment.quantity = null;
-    }
+    if (investment.costBasis === undefined || investment.costBasis === null) investment.costBasis = Number(investment.value) || 0;
+    if (investment.quantity === undefined || investment.quantity === null) investment.quantity = null;
     if (!investment.category) investment.category = "Altro";
 
     if (investment.averagePrice === undefined || investment.averagePrice === null) {
@@ -374,11 +346,10 @@ accounts.forEach(account => {
   updateAccountBalance(account);
 });
 
-const euro = value => Number(value).toLocaleString("it-IT", {
-  style:"currency", currency:"EUR"
-});
+const euro = value => Number(value || 0).toLocaleString("it-IT", {style:"currency",currency:"EUR"});
 
 function persist() {
+  normalizeMovementIds();
   accounts.forEach(updateAccountBalance);
   localStorage.setItem("rendiconto_conti", JSON.stringify(accounts));
   localStorage.setItem("rendiconto_trasferimenti", JSON.stringify(transfers));
@@ -388,15 +359,11 @@ function persist() {
 }
 
 function render() {
-  document.getElementById("total").textContent =
-    euro(accounts.reduce((sum, a) => sum + (Number(a.balance) || 0), 0));
-
+  document.getElementById("total").textContent = euro(accounts.reduce((sum, a) => sum + (Number(a.balance) || 0), 0));
   const container = document.getElementById("accounts");
   container.innerHTML = "";
 
-  if (!accounts.length) {
-    container.innerHTML = '<div class="empty">Aggiungi il tuo primo conto per iniziare.</div>';
-  }
+  if (!accounts.length) container.innerHTML = '<div class="empty">Aggiungi il tuo primo conto per iniziare.</div>';
 
   accounts.forEach(a => {
     const card = document.createElement("div");
@@ -412,7 +379,7 @@ function render() {
 
     const name = document.createElement("div");
     name.className = "name";
-    name.textContent = a.name;
+    name.textContent = a.name || "Conto senza nome";
 
     const balance = document.createElement("div");
     balance.className = "balance";
@@ -432,13 +399,13 @@ function openAccountDetail(id) {
   closeInternalTransfer();
   closeIncome();
   closeSale();
-  closeMovementEdit();
+  closeMovementEditor();
 
-  const account = accounts.find(a => a.id === id);
+  const account = accounts.find(a => String(a.id) === String(id));
   if (!account) return;
 
-  selectedAccountId = id;
-  document.getElementById("detailName").textContent = account.name;
+  selectedAccountId = account.id;
+  document.getElementById("detailName").textContent = account.name || "Dettagli conto";
   document.getElementById("detailBalance").textContent = euro(account.balance);
   document.getElementById("detailLiquidity").textContent = euro(account.liquidity);
 
@@ -459,33 +426,26 @@ function openAccountDetail(id) {
       details.className = "assetDetails";
 
       const name = document.createElement("strong");
-      name.textContent = investment.name;
+      name.textContent = investment.name || "Investimento senza nome";
 
       const category = document.createElement("div");
       category.className = "assetCategory";
       category.textContent = investment.category || "Altro";
-
       details.append(name, category);
 
       const quantity = Number(investment.quantity);
       const averagePrice = Number(investment.averagePrice);
       const currentPrice = Number(investment.currentPrice);
-
       const numbers = document.createElement("div");
       numbers.className = "assetNumbers";
 
       if (Number.isFinite(quantity) && quantity > 0) {
-        numbers.textContent = "Quantità: " + quantity.toLocaleString("it-IT", {maximumFractionDigits:8});
-        if (Number.isFinite(averagePrice) && averagePrice > 0) {
-          numbers.textContent += " · Costo medio: " + euro(averagePrice);
-        }
-        if (Number.isFinite(currentPrice) && currentPrice > 0) {
-          numbers.textContent += " · Prezzo di riferimento: " + euro(currentPrice);
-        }
+        numbers.textContent = "Quantità: " + quantity.toLocaleString("it-IT",{maximumFractionDigits:8});
+        if (Number.isFinite(averagePrice) && averagePrice > 0) numbers.textContent += " · Costo medio: " + euro(averagePrice);
+        if (Number.isFinite(currentPrice) && currentPrice > 0) numbers.textContent += " · Prezzo di riferimento: " + euro(currentPrice);
       } else {
         numbers.textContent = "Quantità non disponibile: valore storico conservato";
       }
-
       details.append(numbers);
 
       const right = document.createElement("div");
@@ -540,7 +500,7 @@ function openAccountDetail(id) {
 
 function openSale() {
   if (selectedAccountId === null) return;
-  const account = accounts.find(a => a.id === selectedAccountId);
+  const account = accounts.find(a => String(a.id) === String(selectedAccountId));
   if (!account) return;
 
   const availableInvestments = (account.investments || []).filter(investment => Number(investment.quantity) > 0);
@@ -553,55 +513,43 @@ function openSale() {
   closeTransfer();
   closeInternalTransfer();
   closeIncome();
-  closeMovementEdit();
+  closeMovementEditor();
 
   const select = document.getElementById("saleInvestment");
   select.innerHTML = "";
-
   availableInvestments.forEach(investment => {
     const option = document.createElement("option");
     option.value = investment.name;
-    option.textContent = investment.name + " — disponibili: " +
-      Number(investment.quantity).toLocaleString("it-IT", {maximumFractionDigits:8});
+    option.textContent = investment.name + " — disponibili: " + Number(investment.quantity).toLocaleString("it-IT",{maximumFractionDigits:8});
     select.append(option);
   });
 
   document.getElementById("saleQuantity").value = "";
   document.getElementById("saleAmount").value = "";
   document.getElementById("saleCommission").value = "";
-  document.getElementById("saleDate").value = todayInputDate();
   document.getElementById("saleForm").style.display = "block";
   updateSaleQuantityLabel();
   document.getElementById("saleForm").scrollIntoView({behavior:"smooth"});
 }
 
 function updateSaleQuantityLabel() {
-  const account = accounts.find(a => a.id === selectedAccountId);
+  const account = accounts.find(a => String(a.id) === String(selectedAccountId));
   const assetName = document.getElementById("saleInvestment").value;
   const investment = account && account.investments.find(item => item.name === assetName);
   const label = document.getElementById("saleQuantityLabel");
 
-  if (investment) {
-    label.textContent = "Quantità da vendere (disponibili: " +
-      Number(investment.quantity).toLocaleString("it-IT", {maximumFractionDigits:8}) + ")";
-  } else {
-    label.textContent = "Quantità da vendere";
-  }
+  label.textContent = investment
+    ? "Quantità da vendere (disponibili: " + Number(investment.quantity).toLocaleString("it-IT",{maximumFractionDigits:8}) + ")"
+    : "Quantità da vendere";
 }
 
 function saveSale() {
-  const account = accounts.find(a => a.id === selectedAccountId);
-  if (!account) {
-    alert("Seleziona un conto valido.");
-    return;
-  }
+  const account = accounts.find(a => String(a.id) === String(selectedAccountId));
+  if (!account) return alert("Seleziona un conto valido.");
 
   const assetName = document.getElementById("saleInvestment").value;
   const investment = account.investments.find(item => item.name === assetName);
-  if (!investment) {
-    alert("Seleziona un investimento valido.");
-    return;
-  }
+  if (!investment) return alert("Seleziona un investimento valido.");
 
   const rawQuantity = document.getElementById("saleQuantity").value.trim();
   const rawAmount = document.getElementById("saleAmount").value.trim();
@@ -611,39 +559,23 @@ function saveSale() {
   const commission = rawCommission === "" ? 0 : Math.round(Number(rawCommission) * 100) / 100;
   const availableQuantity = Number(investment.quantity);
 
-  if (rawQuantity === "" || !Number.isFinite(quantitySold) || quantitySold <= 0) {
-    alert("Inserisci una quantità da vendere valida, maggiore di zero.");
-    return;
-  }
-  if (quantitySold > availableQuantity + 1e-10) {
-    alert("La quantità da vendere supera quella attualmente posseduta.");
-    return;
-  }
-  if (rawAmount === "" || !Number.isFinite(grossAmount) || grossAmount <= 0) {
-    alert("Inserisci l'importo totale incassato, maggiore di zero.");
-    return;
-  }
-  if (!Number.isFinite(commission) || commission < 0) {
-    alert("Inserisci una commissione valida, pari o superiore a zero.");
-    return;
-  }
-  if (commission > grossAmount) {
-    alert("La commissione non può superare l'importo totale incassato.");
-    return;
-  }
+  if (rawQuantity === "" || !Number.isFinite(quantitySold) || quantitySold <= 0) return alert("Inserisci una quantità da vendere valida, maggiore di zero.");
+  if (quantitySold > availableQuantity + 1e-10) return alert("La quantità da vendere supera quella attualmente posseduta.");
+  if (rawAmount === "" || !Number.isFinite(grossAmount) || grossAmount <= 0) return alert("Inserisci l'importo totale incassato, maggiore di zero.");
+  if (!Number.isFinite(commission) || commission < 0) return alert("Inserisci una commissione valida, pari o superiore a zero.");
+  if (commission > grossAmount) return alert("La commissione non può superare l'importo totale incassato.");
 
   const netAmount = Math.round((grossAmount - commission) * 100) / 100;
   const oldQuantity = availableQuantity;
   const oldCostBasis = Math.max(0, Number(investment.costBasis ?? investment.value) || 0);
   const oldAveragePrice = Number(investment.averagePrice);
-  const averageCost = Number.isFinite(oldAveragePrice) && oldAveragePrice >= 0
-    ? oldAveragePrice : oldCostBasis / oldQuantity;
+  const averageCost = Number.isFinite(oldAveragePrice) && oldAveragePrice >= 0 ? oldAveragePrice : oldCostBasis / oldQuantity;
   const costBasisSold = oldCostBasis * (quantitySold / oldQuantity);
   const remainingQuantity = Math.max(0, oldQuantity - quantitySold);
-  const beforeSale = JSON.parse(JSON.stringify(investment));
 
   account.liquidity = Math.round((Number(account.liquidity) + netAmount) * 100) / 100;
 
+  const saleAssetName = investment.name;
   if (remainingQuantity <= 1e-10) {
     account.investments = account.investments.filter(item => item !== investment);
   } else {
@@ -657,22 +589,11 @@ function saveSale() {
   }
 
   updateAccountBalance(account);
-
   incomes.unshift({
-    id: movementId(),
-    type: "sale",
-    accountId: account.id,
-    accountName: account.name,
-    accountColor: account.color,
-    description: "Vendita " + investment.name,
-    assetName: investment.name,
-    quantity: quantitySold,
-    grossAmount,
-    commission,
-    costBasisSold: Math.round(costBasisSold * 100) / 100,
-    amount: netAmount,
-    investmentBefore: beforeSale,
-    date: inputDateToTimestamp(document.getElementById("saleDate").value)
+    id:makeId(), type:"sale", accountId:account.id, accountName:account.name, accountColor:account.color,
+    description:"Vendita " + saleAssetName, assetName:saleAssetName, quantity:quantitySold,
+    grossAmount:grossAmount, commission:commission, costBasisSold:Math.round(costBasisSold*100)/100,
+    amount:netAmount, date:Date.now()
   });
 
   persist();
@@ -685,12 +606,12 @@ function closeSale() {
 }
 
 function updateInvestmentPrice(accountId, assetName) {
-  const account = accounts.find(a => a.id === accountId);
+  const account = accounts.find(a => String(a.id) === String(accountId));
   if (!account) return;
   const investment = account.investments.find(item => item.name === assetName);
   if (!investment) return;
-
   const quantity = Number(investment.quantity);
+
   if (!Number.isFinite(quantity) || quantity <= 0) {
     alert("Per calcolare il valore di questo investimento serve conoscere la quantità posseduta. Il valore già registrato viene conservato.");
     return;
@@ -714,7 +635,7 @@ function updateInvestmentPrice(accountId, assetName) {
 }
 
 function editInvestment(accountId, assetName) {
-  const account = accounts.find(a => a.id === accountId);
+  const account = accounts.find(a => String(a.id) === String(accountId));
   if (!account) return;
   const investment = account.investments.find(item => item.name === assetName);
   if (!investment) return;
@@ -727,1708 +648,899 @@ function editInvestment(accountId, assetName) {
   const newNameInput = prompt("Nome dell'investimento:", oldName);
   if (newNameInput === null) return;
   const newName = newNameInput.trim();
-  if (!newName) {
-    alert("Il nome dell'investimento non può essere vuoto.");
-    return;
-  }
+  if (!newName) return alert("Il nome dell'investimento non può essere vuoto.");
 
-  const duplicate = account.investments.find(item =>
-    item !== investment && item.name.toLocaleLowerCase("it-IT") === newName.toLocaleLowerCase("it-IT")
-  );
-  if (duplicate) {
-    alert("Esiste già un investimento con questo nome in questo conto.");
-    return;
-  }
+  const duplicate = account.investments.find(item => item !== investment && item.name.toLocaleLowerCase("it-IT") === newName.toLocaleLowerCase("it-IT"));
+  if (duplicate) return alert("Esiste già un investimento con questo nome in questo conto.");
 
   const newCategoryInput = prompt("Categoria dell'investimento. Categorie disponibili: " + investmentCategories.join(", "), oldCategory);
   if (newCategoryInput === null) return;
   const newCategory = newCategoryInput.trim();
-  if (!newCategory) {
-    alert("La categoria non può essere vuota.");
-    return;
-  }
-  if (!investmentCategories.some(item => item.toLocaleLowerCase("it-IT") === newCategory.toLocaleLowerCase("it-IT"))) {
-    investmentCategories.push(newCategory);
-  }
+  if (!newCategory) return alert("La categoria non può essere vuota.");
+  if (!investmentCategories.some(item => item.toLocaleLowerCase("it-IT") === newCategory.toLocaleLowerCase("it-IT"))) investmentCategories.push(newCategory);
 
   const quantityInput = prompt("Quantità totale posseduta:", Number.isFinite(oldQuantity) && oldQuantity > 0 ? String(oldQuantity) : "");
   if (quantityInput === null) return;
   const normalizedQuantity = quantityInput.trim().replace(",", ".");
   const newQuantity = Number(normalizedQuantity);
-  if (normalizedQuantity === "" || !Number.isFinite(newQuantity) || newQuantity <= 0) {
-    alert("Inserisci una quantità valida, maggiore di zero.");
-    return;
-  }
+  if (normalizedQuantity === "" || !Number.isFinite(newQuantity) || newQuantity <= 0) return alert("Inserisci una quantità valida, maggiore di zero.");
 
   const costInput = prompt("Importo totale speso per questa posizione (€):", String(oldCostBasis));
   if (costInput === null) return;
   const normalizedCost = costInput.trim().replace(",", ".");
   const newCostBasis = Number(normalizedCost);
-  if (normalizedCost === "" || !Number.isFinite(newCostBasis) || newCostBasis < 0) {
-    alert("Inserisci un importo speso valido, pari o superiore a zero.");
-    return;
-  }
+  if (normalizedCost === "" || !Number.isFinite(newCostBasis) || newCostBasis < 0) return alert("Inserisci un importo speso valido, pari o superiore a zero.");
 
   investment.name = newName;
-
   investment.category = newCategory;
-
   investment.quantity = newQuantity;
-
   investment.costBasis = Math.round(newCostBasis * 100) / 100;
-
   investment.averagePrice = newCostBasis / newQuantity;
 
   if (Number(investment.currentPrice) > 0) {
-
     investment.value = Math.round(newQuantity * Number(investment.currentPrice) * 100) / 100;
-
   } else {
-
     investment.currentPrice = newCostBasis / newQuantity;
-
     investment.value = Math.round(newQuantity * investment.currentPrice * 100) / 100;
-
   }
 
   updateAccountBalance(account);
-
   persist();
-
   openAccountDetail(account.id);
-
 }
 
 function deleteInvestment(accountId, assetName) {
-
-  const account = accounts.find(a => a.id === accountId);
-
+  const account = accounts.find(a => String(a.id) === String(accountId));
   if (!account) return;
-
   const investment = account.investments.find(item => item.name === assetName);
-
   if (!investment) return;
 
-  const confirmed = confirm('Vuoi eliminare l\'investimento "' + investment.name + '"? Il valore verrà rimosso dal patrimonio, senza aggiungere denaro alla liquidità.');
-
-  if (!confirmed) return;
-
+  if (!confirm('Vuoi eliminare l\'investimento "' + investment.name + '"? Il valore verrà rimosso dal patrimonio, senza aggiungere denaro alla liquidità.')) return;
   account.investments = account.investments.filter(item => item !== investment);
-
   updateAccountBalance(account);
-
   persist();
-
   openAccountDetail(account.id);
-
 }
 
 function closeAccountDetail() {
-
   closeSale();
-
   document.getElementById("accountDetail").style.display = "none";
-
   selectedAccountId = null;
-
 }
 
 function editSelectedAccount() {
-
   if (selectedAccountId === null) return;
-
   const id = selectedAccountId;
-
   closeAccountDetail();
-
   editAccount(id);
-
 }
 
 function deleteSelectedAccount() {
-
   if (selectedAccountId === null) return;
-
   const id = selectedAccountId;
-
   closeAccountDetail();
-
   deleteAccount(id);
-
 }
 
-function getMovementList() {
+function movementDescriptor(item, collection) {
+  if (collection === "transfers") {
+    return {
+      id:item.id, collection:"transfers", item,
+      type:item.internal ? "purchase" : "transfer",
+      accountId:item.fromId || item.accountId || null,
+      fromId:item.fromId || null, toId:item.toId || null,
+      amount:item.amount, description:item.assetName || (item.internal ? "Acquisto investimento" : "Trasferimento"),
+      quantity:item.quantity, commission:item.commission, date:item.date
+    };
+  }
+  return {
+    id:item.id, collection:"incomes", item,
+    type:item.type || "income",
+    accountId:item.accountId || null,
+    amount:item.amount,
+    description:item.description || "",
+    quantity:item.quantity,
+    commission:item.commission,
+    date:item.date
+  };
+}
 
-  return [
-
-    ...transfers.map(t => ({...t, type:"transfer", collection:"transfers"})),
-
-    ...incomes.map(i => ({...i, type:i.type || "income", collection:"incomes"}))
-
-  ];
-
+function getMovement(collection, id) {
+  const list = collection === "transfers" ? transfers : incomes;
+  return list.find(item => String(item.id) === String(id));
 }
 
 function renderTransfers() {
-
   const container = document.getElementById("transferHistory");
-
   const button = document.getElementById("showMore");
-
   container.innerHTML = "";
 
-  const movements = getMovementList().sort((a, b) => (Number(b.date) || 0) - (Number(a.date) || 0));
+  const movements = [
+    ...transfers.map(t => ({...t, type:"transfer", collection:"transfers", id:t.id})),
+    ...incomes.map(i => ({...i, type:i.type || "income", collection:"incomes", id:i.id}))
+  ];
+  movements.sort((a, b) => (Number(b.date) || 0) - (Number(a.date) || 0));
 
   button.style.display = movements.length > 5 ? "block" : "none";
-
   button.textContent = showAllTransfers ? "Mostra meno" : "Mostra altro";
-
   const visible = showAllTransfers ? movements : movements.slice(0, 5);
 
   if (!visible.length) {
-
     container.innerHTML = '<div class="empty">Non hai ancora effettuato movimenti.</div>';
-
     return;
-
   }
 
   visible.forEach(m => {
-
     const row = document.createElement("div");
-
     row.className = "transferRow";
 
     const left = document.createElement("div");
-
     left.className = "transferName";
+    left.style.flex = "1";
 
     const middle = document.createElement("div");
-
     middle.className = "transferMiddle";
 
     const amount = document.createElement("span");
-
     amount.className = "transferAmount";
 
     const right = document.createElement("div");
-
     right.className = "transferName";
-
     right.style.textAlign = "right";
 
-    if (m.type === "transfer") {
-
-      left.textContent = m.fromName || "Conto";
-
-      left.style.color = m.fromColor || "#17191d";
-
-      amount.textContent = "+ " + euro(m.amount);
-
-      right.textContent = m.toName || "Conto";
-
-      right.style.color = m.toColor || "#17191d";
-
-      if (m.assetName) {
-
-        const asset = document.createElement("span");
-
-        asset.className = "assetName";
-
-        asset.textContent = m.assetName;
-
-        middle.append(amount, asset);
-
-      } else {
-
-        middle.append(amount);
-
-      }
-
-    } else if (m.type === "sale") {
-
-      left.textContent = m.description || "Vendita investimento";
-
-      left.style.color = "#18A779";
-
-      amount.textContent = "+ " + euro(m.amount);
-
-      right.textContent = m.accountName || "Conto";
-
-      right.style.color = m.accountColor || "#17191d";
-
+    if (m.collection === "transfers" && m.internal) {
+      left.textContent = "Acquisto investimento";
+      left.style.color = "#3978E8";
+      amount.textContent = "− " + euro(m.amount);
+      right.textContent = m.fromName || "Conto non specificato";
+      right.style.color = m.fromColor || "#777";
       const asset = document.createElement("span");
-
       asset.className = "assetName";
-
-      asset.textContent = (m.assetName || "Investimento") +
-
-        (Number(m.quantity) > 0 ? " · Quantità: " + Number(m.quantity).toLocaleString("it-IT", {maximumFractionDigits:8}) : "");
-
+      asset.textContent = m.assetName || "Investimento";
       middle.append(amount, asset);
-
-    } else {
-
-      left.textContent = m.description || (m.type === "expense" ? "Uscita" : "Entrata");
-
-      left.style.color = m.type === "expense" ? "#E05260" : "#18A779";
-
-      amount.textContent = (m.type === "expense" ? "− " : "+ ") + euro(m.amount);
-
-      right.textContent = m.accountName || "Conto";
-
-      right.style.color = m.accountColor || "#17191d";
-
+    } else if (m.collection === "transfers") {
+      left.textContent = m.fromName || "Conto non specificato";
+      left.style.color = m.fromColor || "#777";
+      amount.textContent = euro(m.amount);
+      right.textContent = m.toName || "Conto non specificato";
+      right.style.color = m.toColor || "#777";
       middle.append(amount);
-
+    } else if (m.type === "sale") {
+      left.textContent = m.description || "Vendita investimento";
+      left.style.color = "#18A779";
+      amount.textContent = "+ " + euro(m.amount);
+      right.textContent = m.accountName || "Conto non specificato";
+      right.style.color = m.accountColor || "#777";
+      const asset = document.createElement("span");
+      asset.className = "assetName";
+      asset.textContent = (m.assetName || "Investimento") + (Number(m.quantity) > 0 ? " · Quantità: " + Number(m.quantity).toLocaleString("it-IT",{maximumFractionDigits:8}) : "");
+      middle.append(amount, asset);
+    } else {
+      left.textContent = m.description || (m.type === "expense" ? "Uscita" : "Entrata");
+      left.style.color = m.type === "expense" ? "#E05260" : "#18A779";
+      amount.textContent = (m.type === "expense" ? "− " : "+ ") + euro(m.amount);
+      right.textContent = m.accountName || "Conto non specificato";
+      right.style.color = m.accountColor || "#777";
+      middle.append(amount);
     }
 
     const date = document.createElement("div");
-
     date.className = "movementDate";
-
     date.textContent = m.date ? new Date(m.date).toLocaleDateString("it-IT") : "Data non disponibile";
-
     left.append(date);
 
-    const leftWrap = document.createElement("div");
-
-    leftWrap.className = "movementLeft";
-
-    leftWrap.append(left);
-
     const editButton = document.createElement("button");
-
     editButton.type = "button";
-
     editButton.className = "movementEdit";
-
     editButton.textContent = "✎";
-
     editButton.setAttribute("aria-label", "Modifica movimento");
+    editButton.title = "Modifica movimento";
+    editButton.onclick = event => {
+      event.stopPropagation();
+      openMovementEditor(m.collection, m.id);
+    };
 
-    editButton.onclick = () => openMovementEditor(m.collection, m.id, m);
-
-    row.append(leftWrap, middle, right, editButton);
-
+    row.append(left, middle, right, editButton);
     container.append(row);
-
   });
-
 }
 
 function toggleTransfers() {
-
   showAllTransfers = !showAllTransfers;
-
   renderTransfers();
-
-}
-
-function openMovementEditor(collection, id, fallbackMovement) {
-
-  const list = collection === "transfers" ? transfers : incomes;
-
-  let movement = list.find(item => item.id && item.id === id);
-
-  if (!movement && fallbackMovement) {
-
-    movement = list.find(item => item === fallbackMovement);
-
-  }
-
-  if (!movement) {
-
-    alert("Non riesco a individuare questo movimento.");
-
-    return;
-
-  }
-
-  editingMovement = {collection, movement};
-
-  closeForm();
-
-  closeTransfer();
-
-  closeInternalTransfer();
-
-  closeIncome();
-
-  closeSale();
-
-  closeAccountDetail();
-
-  const fields = document.getElementById("movementEditFields");
-
-  fields.innerHTML = "";
-
-  const dateLabel = document.createElement("label");
-
-  dateLabel.textContent = "Data";
-
-  const dateInput = document.createElement("input");
-
-  dateInput.type = "date";
-
-  dateInput.id = "editMovementDate";
-
-  dateInput.value = dateToInput(movement.date);
-
-  fields.append(dateLabel, dateInput);
-
-  const isTransfer = collection === "transfers";
-
-  const isSale = movement.type === "sale";
-
-  const isPurchase = isTransfer && Boolean(movement.internal);
-
-  if (isTransfer && !isPurchase) {
-
-    addEditSelect(fields, "editMovementFrom", "Da quale conto", movement.fromId, movement.fromName);
-
-    addEditSelect(fields, "editMovementTo", "A quale conto", movement.toId, movement.toName);
-
-    addEditInput(fields, "editMovementAmount", "Importo (€)", movement.amount, "number");
-
-  } else if (isPurchase) {
-
-    const hasQuantity = Number(movement.quantity) > 0;
-
-    if (hasQuantity) {
-
-      addEditSelect(fields, "editMovementAccount", "Conto", movement.accountId, movement.fromName);
-
-      addEditInput(fields, "editMovementAsset", "Investimento", movement.assetName || "", "text");
-
-      addEditInput(fields, "editMovementAmount", "Importo speso (€)", movement.amount, "number");
-
-      addEditInput(fields, "editMovementQuantity", "Quantità acquistata", movement.quantity, "number");
-
-    } else {
-
-      const note = document.createElement("div");
-
-      note.className = "empty";
-
-      note.textContent = "Questo acquisto è stato registrato prima del salvataggio della quantità per singolo movimento. Per sicurezza puoi modificare la data, ma non importo e quantità.";
-
-      fields.append(note);
-
-    }
-
-  } else if (isSale) {
-
-    const hasSnapshot = movement.investmentBefore && Number(movement.quantity) > 0;
-
-    if (hasSnapshot) {
-
-      addEditSelect(fields, "editMovementAccount", "Conto", movement.accountId, movement.accountName);
-
-      addEditInput(fields, "editMovementAsset", "Investimento", movement.assetName || "", "text");
-
-      addEditInput(fields, "editMovementQuantity", "Quantità venduta", movement.quantity, "number");
-
-      addEditInput(fields, "editMovementGross", "Incasso lordo (€)", movement.grossAmount, "number");
-
-      addEditInput(fields, "editMovementCommission", "Commissione (€)", movement.commission || 0, "number");
-
-    } else {
-
-      const note = document.createElement("div");
-
-      note.className = "empty";
-
-      note.textContent = "Questa vendita non contiene tutti i dati necessari per ricostruire con sicurezza la posizione precedente. Puoi modificare la data, ma non gli importi.";
-
-      fields.append(note);
-
-    }
-
-  } else {
-
-    addEditSelect(fields, "editMovementAccount", "Conto", movement.accountId, movement.accountName);
-
-    addEditInput(fields, "editMovementAmount", "Importo (€)", movement.amount, "number");
-
-    addEditInput(fields, "editMovementDescription", "Descrizione", movement.description || "", "text");
-
-  }
-
-  document.getElementById("movementEditForm").style.display = "block";
-
-  document.getElementById("movementEditForm").scrollIntoView({behavior:"smooth"});
-
-}
-
-function addEditInput(container, id, text, value, type) {
-
-  const label = document.createElement("label");
-
-  label.htmlFor = id;
-
-  label.textContent = text;
-
-  const input = document.createElement("input");
-
-  input.id = id;
-
-  input.type = type;
-
-  if (type === "number") {
-
-    input.step = "any";
-
-    input.inputMode = "decimal";
-
-  }
-
-  input.value = value === undefined || value === null ? "" : value;
-
-  container.append(label, input);
-
-}
-
-function addEditSelect(container, id, text, selectedId, oldName) {
-
-  const label = document.createElement("label");
-
-  label.htmlFor = id;
-
-  label.textContent = text;
-
-  const select = document.createElement("select");
-
-  select.id = id;
-
-  accounts.forEach(account => {
-
-    const option = document.createElement("option");
-
-    option.value = account.id;
-
-    option.textContent = account.name;
-
-    select.append(option);
-
-  });
-
-  if (selectedId && accounts.some(account => String(account.id) === String(selectedId))) {
-
-    select.value = selectedId;
-
-  } else {
-
-    const match = accounts.find(account => account.name === oldName);
-
-    if (match) select.value = match.id;
-
-  }
-
-  container.append(label, select);
-
-}
-
-function closeMovementEdit() {
-
-  document.getElementById("movementEditForm").style.display = "none";
-
-  editingMovement = null;
-
-}
-
-function findAccountForMovement(movement, idField, nameField) {
-
-  if (movement[idField] !== undefined && movement[idField] !== null) {
-
-    const byId = accounts.find(account => String(account.id) === String(movement[idField]));
-
-    if (byId) return byId;
-
-  }
-
-  return accounts.find(account => account.name === movement[nameField]);
-
-}
-
-function saveMovementEdit() {
-
-  if (!editingMovement) return;
-
-  const {collection, movement} = editingMovement;
-
-  const newDate = inputDateToTimestamp(document.getElementById("editMovementDate").value);
-
-  const isTransfer = collection === "transfers";
-
-  const isPurchase = isTransfer && Boolean(movement.internal);
-
-  const isSale = movement.type === "sale";
-
-  if (!isTransfer && !isSale) {
-
-    const account = findAccountForMovement(movement, "accountId", "accountName");
-
-    const newAccountId = document.getElementById("editMovementAccount")?.value;
-
-    const newAccount = accounts.find(item => String(item.id) === String(newAccountId));
-
-    const newAmountInput = document.getElementById("editMovementAmount");
-
-    const newDescriptionInput = document.getElementById("editMovementDescription");
-
-    if (newAmountInput) {
-
-      const newAmount = Number(newAmountInput.value);
-
-      if (!Number.isFinite(newAmount) || newAmount <= 0) {
-
-        alert("Inserisci un importo valido, maggiore di zero.");
-
-        return;
-
-      }
-
-      if (!account || !newAccount) {
-
-        alert("Seleziona un conto valido.");
-
-        return;
-
-      }
-
-      const oldAmount = Number(movement.amount) || 0;
-
-      const oldChange = movement.type === "expense" ? -oldAmount : oldAmount;
-
-      account.liquidity = Math.round((Number(account.liquidity) - oldChange) * 100) / 100;
-
-      const newType = movement.type;
-
-      const newChange = newType === "expense" ? -newAmount : newAmount;
-
-      if (newType === "expense" && Math.round(Number(newAccount.liquidity) * 100) < Math.round(newAmount * 100)) {
-
-        account.liquidity = Math.round((Number(account.liquidity) + oldChange) * 100) / 100;
-
-        alert("Liquidità insufficiente nel conto selezionato.");
-
-        return;
-
-      }
-
-      newAccount.liquidity = Math.round((Number(newAccount.liquidity) + newChange) * 100) / 100;
-
-      movement.amount = Math.round(newAmount * 100) / 100;
-
-      movement.accountId = newAccount.id;
-
-      movement.accountName = newAccount.name;
-
-      movement.accountColor = newAccount.color;
-
-      if (newDescriptionInput) {
-
-        movement.description = newDescriptionInput.value.trim() || (newType === "expense" ? "Uscita" : "Entrata");
-
-      }
-
-      updateAccountBalance(account);
-
-      updateAccountBalance(newAccount);
-
-    } else {
-
-      if (!account) {
-
-        alert("Non trovo il conto associato al movimento.");
-
-        return;
-
-      }
-
-      movement.accountId = account.id;
-
-    }
-
-    movement.date = newDate;
-
-  } else if (isTransfer && !isPurchase) {
-
-    const oldFrom = findAccountForMovement(movement, "fromId", "fromName");
-
-    const oldTo = findAccountForMovement(movement, "toId", "toName");
-
-    const from = accounts.find(item => String(item.id) === String(document.getElementById("editMovementFrom").value));
-
-    const to = accounts.find(item => String(item.id) === String(document.getElementById("editMovementTo").value));
-
-    const amount = Number(document.getElementById("editMovementAmount").value);
-
-    if (!oldFrom || !oldTo || !from || !to || from.id === to.id || !Number.isFinite(amount) || amount <= 0) {
-
-      alert("Controlla i conti e l'importo del trasferimento.");
-
-      return;
-
-    }
-
-    const oldAmount = Number(movement.amount) || 0;
-
-    oldFrom.liquidity = Math.round((Number(oldFrom.liquidity) + oldAmount) * 100) / 100;
-
-    oldTo.liquidity = Math.round((Number(oldTo.liquidity) - oldAmount) * 100) / 100;
-
-    if (Math.round(Number(from.liquidity) * 100) < Math.round(amount * 100)) {
-
-      oldFrom.liquidity = Math.round((Number(oldFrom.liquidity) - oldAmount) * 100) / 100;
-
-      oldTo.liquidity = Math.round((Number(oldTo.liquidity) + oldAmount) * 100) / 100;
-
-      alert("Liquidità insufficiente nel conto di partenza.");
-
-      return;
-
-    }
-
-    from.liquidity = Math.round((Number(from.liquidity) - amount) * 100) / 100;
-
-    to.liquidity = Math.round((Number(to.liquidity) + amount) * 100) / 100;
-
-    movement.fromId = from.id;
-
-    movement.toId = to.id;
-
-    movement.fromName = from.name;
-
-    movement.fromColor = from.color;
-
-    movement.toName = to.name;
-
-    movement.toColor = to.color;
-
-    movement.amount = Math.round(amount * 100) / 100;
-
-    movement.date = newDate;
-
-    updateAccountBalance(oldFrom);
-
-    updateAccountBalance(oldTo);
-
-    updateAccountBalance(from);
-
-    updateAccountBalance(to);
-
-  } else if (isPurchase) {
-
-    const hasQuantity = Number(movement.quantity) > 0;
-
-    if (!hasQuantity) {
-
-      movement.date = newDate;
-
-    } else {
-
-      alert("Per modificare importo e quantità di un acquisto bisogna ricalcolare anche tutti gli acquisti successivi dello stesso investimento. Per evitare saldi errati, in questa versione puoi modificare la data del singolo acquisto.");
-
-      movement.date = newDate;
-
-    }
-
-  } else if (isSale) {
-
-    const hasSnapshot = movement.investmentBefore && Number(movement.quantity) > 0;
-
-    if (!hasSnapshot) {
-
-      movement.date = newDate;
-
-    } else {
-
-      alert("Per evitare di alterare in modo errato quantità e costo medio dopo altre operazioni, in questa versione puoi modificare la data della vendita. La modifica degli importi sarà aggiunta quando sarà disponibile una ricostruzione completa delle operazioni.");
-
-      movement.date = newDate;
-
-    }
-
-  }
-
-  persist();
-
-  closeMovementEdit();
-
-}
-
-function deleteEditedMovement() {
-
-  if (!editingMovement) return;
-
-  const {collection, movement} = editingMovement;
-
-  const isTransfer = collection === "transfers";
-
-  const isPurchase = isTransfer && Boolean(movement.internal);
-
-  const isSale = movement.type === "sale";
-
-  if (isPurchase && !(Number(movement.quantity) > 0)) {
-
-    alert("Non posso eliminare con sicurezza questo vecchio acquisto: la quantità acquistata non è stata salvata nel singolo movimento.");
-
-    return;
-
-  }
-
-  if (isSale && !(movement.investmentBefore && Number(movement.quantity) > 0)) {
-
-    alert("Non posso eliminare con sicurezza questa vecchia vendita: mancano alcuni dati della posizione precedente.");
-
-    return;
-
-  }
-
-  const label = movement.description || movement.assetName ||
-
-    (isPurchase ? "Acquisto investimento" : isSale ? "Vendita investimento" : isTransfer ? "Trasferimento" : "Movimento");
-
-  if (!confirm('Vuoi eliminare il movimento "' + label + '"? Questa operazione modifica anche i saldi interessati.')) return;
-
-  if (isTransfer && !isPurchase) {
-
-    const from = findAccountForMovement(movement, "fromId", "fromName");
-
-    const to = findAccountForMovement(movement, "toId", "toName");
-
-    if (!from || !to) {
-
-      alert("Non trovo i conti associati al trasferimento. Il movimento non è stato eliminato.");
-
-      return;
-
-    }
-
-    from.liquidity = Math.round((Number(from.liquidity) + Number(movement.amount)) * 100) / 100;
-
-    to.liquidity = Math.round((Number(to.liquidity) - Number(movement.amount)) * 100) / 100;
-
-    updateAccountBalance(from);
-
-    updateAccountBalance(to);
-
-    transfers = transfers.filter(item => item !== movement);
-
-  } else if (isPurchase) {
-
-    const account = findAccountForMovement(movement, "accountId", "fromName");
-
-    if (!account) {
-
-      alert("Non trovo il conto associato all'acquisto.");
-
-      return;
-
-    }
-
-    const asset = account.investments.find(item => item.name === movement.assetName);
-
-    if (!asset || Number(asset.quantity) < Number(movement.quantity)) {
-
-      alert("Non posso annullare l'acquisto perché la posizione è cambiata dopo questa operazione.");
-
-      return;
-
-    }
-
-    const oldQuantity = Number(asset.quantity);
-
-    const purchaseQuantity = Number(movement.quantity);
-
-    const purchaseAmount = Number(movement.amount);
-
-    const remainingQuantity = oldQuantity - purchaseQuantity;
-
-    const oldCost = Number(asset.costBasis) || 0;
-
-    asset.costBasis = Math.max(0, Math.round((oldCost - purchaseAmount) * 100) / 100);
-
-    account.liquidity = Math.round((Number(account.liquidity) + purchaseAmount) * 100) / 100;
-
-    if (remainingQuantity <= 1e-10) {
-
-      account.investments = account.investments.filter(item => item !== asset);
-
-    } else {
-
-      asset.quantity = remainingQuantity;
-
-      asset.averagePrice = asset.costBasis / remainingQuantity;
-
-      if (Number(asset.currentPrice) > 0) {
-
-        asset.value = Math.round(remainingQuantity * Number(asset.currentPrice) * 100) / 100;
-
-      }
-
-    }
-
-    transfers = transfers.filter(item => item !== movement);
-
-    updateAccountBalance(account);
-
-  } else if (isSale) {
-
-    const account = findAccountForMovement(movement, "accountId", "accountName");
-
-    if (!account) {
-
-      alert("Non trovo il conto associato alla vendita.");
-
-      return;
-
-    }
-
-    const soldQuantity = Number(movement.quantity);
-
-    const costBasisSold = Number(movement.costBasisSold) || 0;
-
-    account.liquidity = Math.round((Number(account.liquidity) - Number(movement.amount)) * 100) / 100;
-
-    let asset = account.investments.find(item => item.name === movement.assetName);
-
-    if (!asset) {
-
-      asset = JSON.parse(JSON.stringify(movement.investmentBefore));
-
-      account.investments.push(asset);
-
-    } else {
-
-      asset.quantity = Number(asset.quantity) + soldQuantity;
-
-      asset.costBasis = Math.round((Number(asset.costBasis || 0) + costBasisSold) * 100) / 100;
-
-      asset.averagePrice = asset.quantity > 0 ? asset.costBasis / asset.quantity : 0;
-
-      if (Number(asset.currentPrice) > 0) {
-
-        asset.value = Math.round(asset.quantity * Number(asset.currentPrice) * 100) / 100;
-
-      }
-
-    }
-
-    incomes = incomes.filter(item => item !== movement);
-
-    updateAccountBalance(account);
-
-  } else {
-
-    const account = findAccountForMovement(movement, "accountId", "accountName");
-
-    if (!account) {
-
-      alert("Non trovo il conto associato al movimento.");
-
-      return;
-
-    }
-
-    const amount = Number(movement.amount) || 0;
-
-    const change = movement.type === "expense" ? -amount : amount;
-
-    account.liquidity = Math.round((Number(account.liquidity) - change) * 100) / 100;
-
-    incomes = incomes.filter(item => item !== movement);
-
-    updateAccountBalance(account);
-
-  }
-
-  persist();
-
-  closeMovementEdit();
-
 }
 
 function renderColors() {
-
   const container = document.getElementById("colors");
-
   container.innerHTML = "";
-
   palette.forEach(color => {
-
     const button = document.createElement("button");
-
     button.type = "button";
-
     button.className = "color" + (selectedColor === color ? " selected" : "");
-
     button.style.background = color;
-
     button.setAttribute("aria-label", "Seleziona colore");
-
     button.setAttribute("aria-pressed", selectedColor === color);
-
     button.onclick = () => {
-
       selectedColor = color;
-
       renderColors();
-
     };
-
     container.append(button);
-
   });
-
 }
 
 function renderInvestmentCategories(selected) {
-
   const select = document.getElementById("investmentCategory");
-
   select.innerHTML = "";
-
   investmentCategories.forEach(category => {
-
     const option = document.createElement("option");
-
     option.value = category;
-
     option.textContent = category;
-
     select.append(option);
-
   });
-
   const createOption = document.createElement("option");
-
   createOption.value = "__new_category__";
-
   createOption.textContent = "＋ Crea nuova categoria";
-
   select.append(createOption);
-
   select.value = investmentCategories.includes(selected) ? selected : "Altro";
-
 }
 
 function handleCategoryChange() {
-
   const select = document.getElementById("investmentCategory");
-
   if (select.value !== "__new_category__") return;
-
   const category = prompt("Nome della nuova categoria:");
-
   const name = category ? category.trim() : "";
-
   if (!name) {
-
     select.value = "Altro";
-
     return;
-
   }
-
-  const existing = investmentCategories.find(item =>
-
-    item.toLocaleLowerCase("it-IT") === name.toLocaleLowerCase("it-IT")
-
-  );
-
+  const existing = investmentCategories.find(item => item.toLocaleLowerCase("it-IT") === name.toLocaleLowerCase("it-IT"));
   if (existing) {
-
     select.value = existing;
-
     return;
-
   }
-
   investmentCategories.push(name);
-
   localStorage.setItem("rendiconto_categorie_investimenti", JSON.stringify(investmentCategories));
-
   renderInvestmentCategories(name);
-
 }
 
 function newAccount() {
-
   closeAccountDetail();
-
   closeTransfer();
-
   closeInternalTransfer();
-
   closeIncome();
-
   closeSale();
-
-  closeMovementEdit();
-
+  closeMovementEditor();
   editingId = null;
-
   selectedColor = palette[accounts.length % palette.length];
-
   document.getElementById("formTitle").textContent = "Nuovo conto";
-
   document.getElementById("name").value = "";
-
   document.getElementById("balance").value = "";
-
   renderColors();
-
   document.getElementById("form").style.display = "block";
-
   document.getElementById("name").focus();
-
 }
 
 function editAccount(id) {
-
   closeAccountDetail();
-
   closeTransfer();
-
   closeInternalTransfer();
-
   closeIncome();
-
   closeSale();
-
-  closeMovementEdit();
-
-  const a = accounts.find(item => item.id === id);
-
+  closeMovementEditor();
+  const a = accounts.find(item => String(item.id) === String(id));
   if (!a) return;
-
-  editingId = id;
-
-  selectedColor = a.color;
-
+  editingId = a.id;
+  selectedColor = a.color || palette[0];
   document.getElementById("formTitle").textContent = "Modifica conto";
-
-  document.getElementById("name").value = a.name;
-
-  document.getElementById("balance").value = a.balance;
-
+  document.getElementById("name").value = a.name || "";
+  document.getElementById("balance").value = a.balance ?? "";
   renderColors();
-
   document.getElementById("form").style.display = "block";
-
   document.getElementById("form").scrollIntoView({behavior:"smooth"});
-
 }
 
 function saveAccount() {
-
   const name = document.getElementById("name").value.trim();
-
   const rawBalance = document.getElementById("balance").value.trim();
-
-  if (!name) {
-
-    alert("Inserisci il nome del conto.");
-
-    return;
-
-  }
-
-  if (rawBalance === "" || !Number.isFinite(Number(rawBalance))) {
-
-    alert("Inserisci un saldo valido.");
-
-    return;
-
-  }
-
+  if (!name) return alert("Inserisci il nome del conto.");
+  if (rawBalance === "" || !Number.isFinite(Number(rawBalance))) return alert("Inserisci un saldo valido.");
   const balance = Number(rawBalance);
 
   if (editingId !== null) {
-
-    const a = accounts.find(item => item.id === editingId);
-
+    const a = accounts.find(item => String(item.id) === String(editingId));
     if (a) {
-
       a.name = name;
-
       a.liquidity = Math.round((balance - investmentTotal(a)) * 100) / 100;
-
       a.color = selectedColor;
-
       updateAccountBalance(a);
-
+      updateMovementAccountNames(a);
     }
-
   } else {
-
-    accounts.push({
-
-      id: movementId(),
-
-      name,
-
-      balance,
-
-      liquidity: balance,
-
-      investments: [],
-
-      color: selectedColor
-
-    });
-
+    accounts.push({id:makeId(),name,balance,liquidity:balance,investments:[],color:selectedColor});
   }
 
   persist();
-
   closeForm();
+}
 
+function updateMovementAccountNames(account) {
+  transfers.forEach(item => {
+    if (String(item.fromId) === String(account.id) || (!item.fromId && item.fromName === account.name)) {
+      item.fromName = account.name;
+      item.fromColor = account.color;
+    }
+    if (String(item.toId) === String(account.id) || (!item.toId && item.toName === account.name)) {
+      item.toName = account.name;
+      item.toColor = account.color;
+    }
+  });
+  incomes.forEach(item => {
+    if (String(item.accountId) === String(account.id) || (!item.accountId && item.accountName === account.name)) {
+      item.accountName = account.name;
+      item.accountColor = account.color;
+    }
+  });
 }
 
 function deleteAccount(id) {
-
-  const a = accounts.find(item => item.id === id);
-
+  const a = accounts.find(item => String(item.id) === String(id));
   if (!a) return;
-
   if (confirm('Vuoi eliminare il conto "' + a.name + '"?')) {
-
-    accounts = accounts.filter(item => item.id !== id);
-
+    accounts = accounts.filter(item => String(item.id) !== String(id));
     persist();
-
   }
-
 }
 
 function closeForm() {
-
   document.getElementById("form").style.display = "none";
-
   editingId = null;
+}
 
+function fillAccountSelect(select, selectedId, includeBlank) {
+  select.innerHTML = "";
+  if (includeBlank) {
+    const blank = document.createElement("option");
+    blank.value = "";
+    blank.textContent = "Non specificato";
+    select.append(blank);
+  }
+  accounts.forEach(account => {
+    const option = document.createElement("option");
+    option.value = account.id;
+    option.textContent = account.name || "Conto senza nome";
+    select.append(option);
+  });
+  if (selectedId !== undefined && selectedId !== null) select.value = String(selectedId);
+  if (includeBlank && selectedId === null) select.value = "";
 }
 
 function openTransfer() {
-
   closeForm();
-
   closeAccountDetail();
-
   closeInternalTransfer();
-
   closeIncome();
-
   closeSale();
-
-  closeMovementEdit();
+  closeMovementEditor();
 
   if (accounts.length < 2) {
-
     alert("Devi avere almeno due conti per effettuare un trasferimento.");
-
     return;
-
   }
 
   const from = document.getElementById("from");
-
   const to = document.getElementById("to");
-
   from.innerHTML = "";
-
   to.innerHTML = "";
 
   accounts.forEach(a => {
-
     const optionFrom = document.createElement("option");
-
     optionFrom.value = a.id;
-
     optionFrom.textContent = a.name + " (Liquidità: " + euro(a.liquidity) + ")";
-
     from.append(optionFrom);
-
     const optionTo = document.createElement("option");
-
     optionTo.value = a.id;
-
     optionTo.textContent = a.name;
-
     to.append(optionTo);
-
   });
 
   to.selectedIndex = 1;
-
   document.getElementById("transferAmount").value = "";
-
-  document.getElementById("transferDate").value = todayInputDate();
-
   document.getElementById("transferForm").style.display = "block";
-
   document.getElementById("transferForm").scrollIntoView({behavior:"smooth"});
-
 }
 
 function saveTransfer() {
-
   const fromId = document.getElementById("from").value;
-
   const toId = document.getElementById("to").value;
-
   const rawAmount = document.getElementById("transferAmount").value.trim();
-
   const amount = Math.round(Number(rawAmount) * 100) / 100;
 
-  if (fromId === toId) {
-
-    alert("Scegli due conti diversi.");
-
-    return;
-
-  }
-
-  if (rawAmount === "" || !Number.isFinite(amount) || amount <= 0) {
-
-    alert("Inserisci un importo valido.");
-
-    return;
-
-  }
+  if (fromId === toId) return alert("Scegli due conti diversi.");
+  if (rawAmount === "" || !Number.isFinite(amount) || amount <= 0) return alert("Inserisci un importo valido.");
 
   const from = accounts.find(a => String(a.id) === String(fromId));
-
   const to = accounts.find(a => String(a.id) === String(toId));
-
-  if (!from || !to) {
-
-    alert("Seleziona due conti validi.");
-
-    return;
-
-  }
-
-  if (Math.round(Number(from.liquidity) * 100) < Math.round(amount * 100)) {
-
-    alert("Liquidità insufficiente nel conto di partenza.");
-
-    return;
-
-  }
+  if (!from || !to) return alert("Seleziona due conti validi.");
+  if (Math.round(Number(from.liquidity) * 100) < Math.round(amount * 100)) return alert("Liquidità insufficiente nel conto di partenza.");
 
   from.liquidity = Math.round((Number(from.liquidity) - amount) * 100) / 100;
-
   to.liquidity = Math.round((Number(to.liquidity) + amount) * 100) / 100;
-
   updateAccountBalance(from);
-
   updateAccountBalance(to);
 
   transfers.unshift({
-
-    id: movementId(),
-
-    fromId: from.id,
-
-    toId: to.id,
-
-    fromName: from.name,
-
-    fromColor: from.color,
-
-    toName: to.name,
-
-    toColor: to.color,
-
-    amount,
-
-    date: inputDateToTimestamp(document.getElementById("transferDate").value)
-
+    id:makeId(),fromId:from.id,fromName:from.name,fromColor:from.color,
+    toId:to.id,toName:to.name,toColor:to.color,amount,date:Date.now()
   });
-
   persist();
-
   closeTransfer();
-
 }
 
 function closeTransfer() {
-
   document.getElementById("transferForm").style.display = "none";
-
 }
 
 function openInternalTransfer() {
-
   if (selectedAccountId === null) return;
-
-  const account = accounts.find(a => a.id === selectedAccountId);
-
+  const account = accounts.find(a => String(a.id) === String(selectedAccountId));
   if (!account) return;
 
   closeForm();
-
   closeTransfer();
-
   closeIncome();
-
   closeSale();
-
-  closeMovementEdit();
+  closeMovementEditor();
 
   internalTransferAccountId = account.id;
-
   document.getElementById("internalTransferTitle").textContent = "Acquisto da " + account.name + " agli investimenti";
-
   document.getElementById("investmentName").value = "";
-
   document.getElementById("internalTransferAmount").value = "";
-
   document.getElementById("investmentQuantity").value = "";
-
-  document.getElementById("purchaseDate").value = todayInputDate();
-
   renderInvestmentCategories("Azioni");
-
   document.getElementById("internalTransferForm").style.display = "block";
-
   document.getElementById("internalTransferForm").scrollIntoView({behavior:"smooth"});
-
 }
 
 function saveInternalTransfer() {
-
   const account = accounts.find(a => String(a.id) === String(internalTransferAccountId));
-
-  if (!account) {
-
-    alert("Seleziona un conto valido.");
-
-    return;
-
-  }
+  if (!account) return alert("Seleziona un conto valido.");
 
   const assetName = document.getElementById("investmentName").value.trim();
-
   const category = document.getElementById("investmentCategory").value;
-
   const rawAmount = document.getElementById("internalTransferAmount").value.trim();
-
   const rawQuantity = document.getElementById("investmentQuantity").value.trim();
-
   const amount = Math.round(Number(rawAmount) * 100) / 100;
 
-  if (!assetName) {
-
-    alert("Inserisci il nome dell'investimento.");
-
-    return;
-
-  }
-
-  if (!category || category === "__new_category__") {
-
-    alert("Seleziona una categoria valida.");
-
-    return;
-
-  }
-
-  if (rawAmount === "" || !Number.isFinite(amount) || amount <= 0) {
-
-    alert("Inserisci un importo speso valido.");
-
-    return;
-
-  }
-
-  if (rawQuantity === "") {
-
-    alert("Inserisci la quantità effettivamente ricevuta.");
-
-    return;
-
-  }
-
+  if (!assetName) return alert("Inserisci il nome dell'investimento.");
+  if (!category || category === "__new_category__") return alert("Seleziona una categoria valida.");
+  if (rawAmount === "" || !Number.isFinite(amount) || amount <= 0) return alert("Inserisci un importo speso valido.");
+  if (rawQuantity === "") return alert("Inserisci la quantità effettivamente ricevuta.");
   const quantity = Number(rawQuantity);
-
-  if (!Number.isFinite(quantity) || quantity <= 0) {
-
-    alert("Inserisci una quantità ricevuta valida.");
-
-    return;
-
-  }
-
-  if (Math.round(Number(account.liquidity) * 100) < Math.round(amount * 100)) {
-
-    alert("Liquidità insufficiente nel conto selezionato.");
-
-    return;
-
-  }
+  if (!Number.isFinite(quantity) || quantity <= 0) return alert("Inserisci una quantità ricevuta valida.");
+  if (Math.round(Number(account.liquidity) * 100) < Math.round(amount * 100)) return alert("Liquidità insufficiente nel conto selezionato.");
 
   const purchaseUnitPrice = amount / quantity;
-
   account.liquidity = Math.round((Number(account.liquidity) - amount) * 100) / 100;
 
-  let investment = account.investments.find(item =>
-
-    item.name.toLocaleLowerCase("it-IT") === assetName.toLocaleLowerCase("it-IT")
-
-  );
+  let investment = account.investments.find(item => item.name.toLocaleLowerCase("it-IT") === assetName.toLocaleLowerCase("it-IT"));
 
   if (investment) {
-
     const oldQuantity = Number(investment.quantity);
-
     const oldCostBasis = Number(investment.costBasis ?? investment.value) || 0;
-
     if (Number.isFinite(oldQuantity) && oldQuantity > 0) {
-
       const totalQuantity = oldQuantity + quantity;
-
       const totalCostBasis = oldCostBasis + amount;
-
       investment.quantity = totalQuantity;
-
       investment.costBasis = Math.round(totalCostBasis * 100) / 100;
-
       investment.averagePrice = totalCostBasis / totalQuantity;
-
       investment.currentPrice = purchaseUnitPrice;
-
       investment.value = Math.round(totalQuantity * purchaseUnitPrice * 100) / 100;
-
     } else {
-
       const oldValue = Number(investment.value) || 0;
-
       investment.quantity = quantity;
-
       investment.costBasis = Math.round(amount * 100) / 100;
-
       investment.averagePrice = purchaseUnitPrice;
-
       investment.currentPrice = purchaseUnitPrice;
-
       investment.value = Math.round((oldValue + amount) * 100) / 100;
-
     }
-
     investment.category = category;
-
   } else {
-
     investment = {
-
-      name: assetName,
-
-      category,
-
-      value: Math.round(quantity * purchaseUnitPrice * 100) / 100,
-
-      costBasis: amount,
-
-      quantity,
-
-      averagePrice: purchaseUnitPrice,
-
-      currentPrice: purchaseUnitPrice
-
+      name:assetName,category,
+      value:Math.round(quantity * purchaseUnitPrice * 100) / 100,
+      costBasis:amount,quantity,averagePrice:purchaseUnitPrice,currentPrice:purchaseUnitPrice
     };
-
     account.investments.push(investment);
-
   }
 
   updateAccountBalance(account);
-
   transfers.unshift({
-
-    id: movementId(),
-
-    accountId: account.id,
-
-    fromId: account.id,
-
-    fromName: account.name,
-
-    fromColor: account.color,
-
-    toId: account.id,
-
-    toName: account.name,
-
-    toColor: account.color,
-
-    amount,
-
-    assetName,
-
-    category,
-
-    quantity,
-
-    internal: true,
-
-    date: inputDateToTimestamp(document.getElementById("purchaseDate").value)
-
+    id:makeId(),fromId:account.id,fromName:account.name,fromColor:account.color,
+    toId:account.id,toName:account.name,toColor:account.color,amount,
+    assetName,quantity,category,internal:true,date:Date.now()
   });
-
   persist();
-
   closeInternalTransfer();
-
   openAccountDetail(account.id);
-
 }
 
 function closeInternalTransfer() {
-
   document.getElementById("internalTransferForm").style.display = "none";
-
   internalTransferAccountId = null;
-
 }
 
 function openIncome() {
-
   closeForm();
-
   closeTransfer();
-
   closeInternalTransfer();
-
   closeAccountDetail();
-
   closeSale();
+  closeMovementEditor();
 
-  closeMovementEdit();
-
-  if (!accounts.length) {
-
-    alert("Devi prima aggiungere almeno un conto.");
-
-    return;
-
-  }
-
+  if (!accounts.length) return alert("Devi prima aggiungere almeno un conto.");
   const select = document.getElementById("incomeAccount");
-
   select.innerHTML = "";
 
   accounts.forEach(a => {
-
     const option = document.createElement("option");
-
     option.value = a.id;
-
     option.textContent = a.name + " (Liquidità: " + euro(a.liquidity) + ")";
-
     select.append(option);
-
   });
 
   document.getElementById("movementType").value = "income";
-
   document.getElementById("incomeAmount").value = "";
-
   document.getElementById("incomeDescription").value = "";
-
-  document.getElementById("incomeDate").value = todayInputDate();
-
   document.getElementById("incomeForm").style.display = "block";
-
   document.getElementById("incomeForm").scrollIntoView({behavior:"smooth"});
-
 }
 
 function saveIncome() {
-
   const accountId = document.getElementById("incomeAccount").value;
-
   const rawAmount = document.getElementById("incomeAmount").value.trim();
-
   const amount = Math.round(Number(rawAmount) * 100) / 100;
-
   const description = document.getElementById("incomeDescription").value.trim();
-
   const type = document.getElementById("movementType").value;
 
-  if (rawAmount === "" || !Number.isFinite(amount) || amount <= 0) {
-
-    alert("Inserisci un importo valido.");
-
-    return;
-
-  }
-
+  if (rawAmount === "" || !Number.isFinite(amount) || amount <= 0) return alert("Inserisci un importo valido.");
   const account = accounts.find(a => String(a.id) === String(accountId));
-
-  if (!account) {
-
-    alert("Seleziona un conto valido.");
-
-    return;
-
-  }
-
-  if (type === "expense" && Math.round(Number(account.liquidity) * 100) < Math.round(amount * 100)) {
-
-    alert("Liquidità insufficiente nel conto selezionato.");
-
-    return;
-
-  }
+  if (!account) return alert("Seleziona un conto valido.");
+  if (type === "expense" && Math.round(Number(account.liquidity) * 100) < Math.round(amount * 100)) return alert("Liquidità insufficiente nel conto selezionato.");
 
   const change = type === "expense" ? -amount : amount;
-
   account.liquidity = Math.round((Number(account.liquidity) + change) * 100) / 100;
-
   updateAccountBalance(account);
 
   incomes.unshift({
-
-    id: movementId(),
-
-    type,
-
-    accountId: account.id,
-
-    accountName: account.name,
-
-    accountColor: account.color,
-
-    description: description || (type === "expense" ? "Uscita" : "Entrata"),
-
-    amount,
-
-    date: inputDateToTimestamp(document.getElementById("incomeDate").value)
-
+    id:makeId(),type,accountId:account.id,accountName:account.name,accountColor:account.color,
+    description:description || (type === "expense" ? "Uscita" : "Entrata"),amount,date:Date.now()
   });
-
   persist();
-
   closeIncome();
-
 }
 
 function closeIncome() {
-
   document.getElementById("incomeForm").style.display = "none";
-
 }
 
+/* Modifica dei movimenti */
+
+function dateInputValue(timestamp) {
+  if (!timestamp || !Number.isFinite(Number(timestamp))) return "";
+  const d = new Date(Number(timestamp));
+  return d.getFullYear() + "-" + String(d.getMonth()+1).padStart(2,"0") + "-" + String(d.getDate()).padStart(2,"0");
+}
+
+function movementTypeFor(collection, item) {
+  if (collection === "transfers") return item.internal ? "purchase" : "transfer";
+  return item.type === "sale" ? "sale" : (item.type === "expense" ? "expense" : "income");
+}
+
+function openMovementEditor(collection, id) {
+  const item = getMovement(collection, id);
+
+  if (!item) {
+    alert("Non riesco a individuare questo movimento nei dati salvati. Aggiorna la cronologia e riprova.");
+    return;
+  }
+
+  closeForm();
+  closeTransfer();
+  closeInternalTransfer();
+  closeIncome();
+  closeSale();
+  closeAccountDetail();
+
+  editingMovement = {collection, id:String(id)};
+  const type = movementTypeFor(collection, item);
+  document.getElementById("editMovementType").value = type;
+
+  fillAccountSelect(document.getElementById("editMovementAccount"), item.accountId || item.fromId || findAccountIdByName(item.accountName || item.fromName), true);
+  fillAccountSelect(document.getElementById("editFromAccount"), item.fromId || findAccountIdByName(item.fromName), true);
+  fillAccountSelect(document.getElementById("editToAccount"), item.toId || findAccountIdByName(item.toName), true);
+
+  document.getElementById("editMovementAmount").value = item.amount === undefined || item.amount === null ? "" : item.amount;
+  document.getElementById("editMovementDescription").value = item.description || item.assetName || "";
+  document.getElementById("editMovementQuantity").value = item.quantity === undefined || item.quantity === null ? "" : item.quantity;
+  document.getElementById("editMovementCommission").value = item.commission === undefined || item.commission === null ? "" : item.commission;
+  document.getElementById("editMovementDate").value = dateInputValue(item.date);
+
+  updateMovementEditorFields();
+  document.getElementById("movementEditForm").style.display = "block";
+  document.getElementById("movementEditForm").scrollIntoView({behavior:"smooth"});
+}
+
+function findAccountIdByName(name) {
+  if (!name) return null;
+  const account = accounts.find(a => a.name === name);
+  return account ? account.id : null;
+}
+
+function updateMovementEditorFields() {
+  const type = document.getElementById("editMovementType").value;
+  document.getElementById("editTransferFields").style.display = type === "transfer" ? "block" : "none";
+  document.getElementById("editInvestmentFields").style.display = (type === "purchase" || type === "sale") ? "block" : "none";
+  document.getElementById("editMovementAccount").parentElement.style.display = type === "transfer" ? "none" : "block";
+
+  const amountLabel = document.querySelector('label[for="editMovementAmount"]');
+  if (type === "purchase") amountLabel.textContent = "Importo speso (€)";
+  else if (type === "sale") amountLabel.textContent = "Importo netto incassato (€)";
+  else amountLabel.textContent = "Importo (€)";
+}
+
+function closeMovementEditor() {
+  document.getElementById("movementEditForm").style.display = "none";
+  editingMovement = null;
+}
+
+function roundMoney(value) {
+  return Math.round((Number(value) || 0) * 100) / 100;
+}
+
+function accountById(id) {
+  if (id === "" || id === null || id === undefined) return null;
+  return accounts.find(a => String(a.id) === String(id)) || null;
+}
+
+function findInvestment(account, name) {
+  if (!account || !name) return null;
+  return (account.investments || []).find(i => String(i.name || "").toLocaleLowerCase("it-IT") === String(name).toLocaleLowerCase("it-IT")) || null;
+}
+
+function reverseMovementEffect(collection, item) {
+  const type = movementTypeFor(collection, item);
+  const amount = Number(item.amount) || 0;
+
+  if (type === "transfer") {
+    const from = accountById(item.fromId) || accounts.find(a => a.name === item.fromName);
+    const to = accountById(item.toId) || accounts.find(a => a.name === item.toName);
+    if (from) from.liquidity = roundMoney(Number(from.liquidity) + amount);
+    if (to) to.liquidity = roundMoney(Number(to.liquidity) - amount);
+    if (from) updateAccountBalance(from);
+    if (to && to !== from) updateAccountBalance(to);
+    return;
+  }
+
+  const account = accountById(item.accountId) || accountById(item.fromId) || accounts.find(a => a.name === (item.accountName || item.fromName));
+  if (!account) return;
+
+  if (type === "income") {
+    account.liquidity = roundMoney(Number(account.liquidity) - amount);
+  } else if (type === "expense") {
+    account.liquidity = roundMoney(Number(account.liquidity) + amount);
+  } else if (type === "sale") {
+    account.liquidity = roundMoney(Number(account.liquidity) - amount);
+    const assetName = item.assetName || (item.description || "").replace(/^Vendita\s*/i, "");
+    let investment = findInvestment(account, assetName);
+    const quantity = Number(item.quantity);
+    if (quantity > 0) {
+      if (!investment) {
+        investment = {
+          name:assetName || "Investimento recuperato",category:"Altro",quantity:0,
+          value:0,costBasis:0,averagePrice:0,currentPrice:null
+        };
+        account.investments.push(investment);
+      }
+      const restoredCost = Number(item.costBasisSold);
+      const priorQuantity = Number(investment.quantity) || 0;
+      const priorCost = Number(investment.costBasis) || 0;
+      investment.quantity = priorQuantity + quantity;
+      investment.costBasis = roundMoney(priorCost + (Number.isFinite(restoredCost) ? restoredCost : 0));
+      investment.averagePrice = investment.quantity > 0 ? investment.costBasis / investment.quantity : null;
+      if (Number(investment.currentPrice) > 0) investment.value = roundMoney(investment.quantity * Number(investment.currentPrice));
+      else investment.value = roundMoney(Number(investment.value) + amount);
+    }
+  } else if (type === "purchase") {
+    account.liquidity = roundMoney(Number(account.liquidity) + amount);
+    const assetName = item.assetName || item.description;
+    const investment = findInvestment(account, assetName);
+    const quantity = Number(item.quantity);
+    if (investment && quantity > 0) {
+      investment.quantity = Math.max(0, (Number(investment.quantity) || 0) - quantity);
+      investment.costBasis = Math.max(0, roundMoney((Number(investment.costBasis) || 0) - amount));
+      if (investment.quantity <= 1e-10) {
+        account.investments = account.investments.filter(i => i !== investment);
+      } else {
+        investment.averagePrice = investment.costBasis / investment.quantity;
+        if (Number(investment.currentPrice) > 0) investment.value = roundMoney(investment.quantity * Number(investment.currentPrice));
+      }
+    }
+  }
+
+  updateAccountBalance(account);
+}
+
+function applyMovementEffect(collection, item) {
+  const type = movementTypeFor(collection, item);
+  const amount = Number(item.amount) || 0;
+
+  if (type === "transfer") {
+    const from = accountById(item.fromId);
+    const to = accountById(item.toId);
+    if (from) from.liquidity = roundMoney(Number(from.liquidity) - amount);
+    if (to) to.liquidity = roundMoney(Number(to.liquidity) + amount);
+    if (from) updateAccountBalance(from);
+    if (to && to !== from) updateAccountBalance(to);
+    return;
+  }
+
+  const account = accountById(item.accountId);
+  if (!account) return;
+
+  if (type === "income") {
+    account.liquidity = roundMoney(Number(account.liquidity) + amount);
+  } else if (type === "expense") {
+    account.liquidity = roundMoney(Number(account.liquidity) - amount);
+  } else if (type === "purchase") {
+    const assetName = item.assetName || item.description || "";
+    const quantity = Number(item.quantity);
+    account.liquidity = roundMoney(Number(account.liquidity) - amount);
+
+    if (assetName && quantity > 0) {
+      let investment = findInvestment(account, assetName);
+      const unitPrice = amount / quantity;
+
+      if (investment) {
+        const oldQuantity = Number(investment.quantity) || 0;
+        const oldCost = Number(investment.costBasis ?? investment.value) || 0;
+        const newQuantity = oldQuantity + quantity;
+        const newCost = oldCost + amount;
+        investment.quantity = newQuantity;
+        investment.costBasis = roundMoney(newCost);
+        investment.averagePrice = newCost / newQuantity;
+        investment.currentPrice = unitPrice;
+        investment.value = roundMoney(newQuantity * unitPrice);
+      } else {
+        investment = {
+          name:assetName,category:item.category || "Altro",quantity,
+          costBasis:amount,averagePrice:unitPrice,currentPrice:unitPrice,value:roundMoney(quantity*unitPrice)
+        };
+        account.investments.push(investment);
+      }
+    }
+  } else if (type === "sale") {
+    const assetName = item.assetName || item.description || "";
+    const quantity = Number(item.quantity);
+    const investment = findInvestment(account, assetName);
+    account.liquidity = roundMoney(Number(account.liquidity) + amount);
+
+    if (investment && quantity > 0 && Number(investment.quantity) > 0) {
+      const oldQuantity = Number(investment.quantity);
+      const oldCost = Number(investment.costBasis ?? investment.value) || 0;
+      const soldQuantity = Math.min(quantity, oldQuantity);
+      const costSold = oldCost * soldQuantity / oldQuantity;
+      const remaining = Math.max(0, oldQuantity - soldQuantity);
+
+      item.costBasisSold = roundMoney(costSold);
+      if (remaining <= 1e-10) {
+        account.investments = account.investments.filter(i => i !== investment);
+      } else {
+        investment.quantity = remaining;
+        investment.costBasis = roundMoney(oldCost - costSold);
+        investment.averagePrice = investment.costBasis / remaining;
+        if (Number(investment.currentPrice) > 0) investment.value = roundMoney(remaining * Number(investment.currentPrice));
+        else investment.value = roundMoney(Number(investment.value) * remaining / oldQuantity);
+      }
+    }
+  }
+
+  updateAccountBalance(account);
+}
+
+function saveMovementEdit() {
+  if (!editingMovement) return alert("Nessun movimento selezionato per la modifica.");
+
+  const {collection, id} = editingMovement;
+  const item = getMovement(collection, id);
+  if (!item) return alert("Il movimento non è più disponibile. Riapri la cronologia e riprova.");
+
+  const oldType = movementTypeFor(collection, item);
+  const newType = document.getElementById("editMovementType").value;
+  const rawAmount = document.getElementById("editMovementAmount").value.trim();
+  const amount = rawAmount === "" ? null : Number(rawAmount);
+  const description = document.getElementById("editMovementDescription").value.trim();
+  const rawQuantity = document.getElementById("editMovementQuantity").value.trim();
+  const quantity = rawQuantity === "" ? null : Number(rawQuantity);
+  const rawCommission = document.getElementById("editMovementCommission").value.trim();
+  const commission = rawCommission === "" ? 0 : Number(rawCommission);
+  const dateText = document.getElementById("editMovementDate").value;
+  const date = dateText ? new Date(dateText + "T12:00:00").getTime() : null;
+
+  if (amount !== null && !Number.isFinite(amount)) return alert("L'importo inserito non è valido.");
+  if (quantity !== null && (!Number.isFinite(quantity) || quantity < 0)) return alert("La quantità inserita non è valida.");
+  if (!Number.isFinite(commission) || commission < 0) return alert("La commissione inserita non è valida.");
+
+  const original = JSON.parse(JSON.stringify(item));
+  reverseMovementEffect(collection, original);
+
+  if (newType === "transfer") {
+    const from = accountById(document.getElementById("editFromAccount").value);
+    const to = accountById(document.getElementById("editToAccount").value);
+
+    item.internal = false;
+    delete item.assetName;
+    item.fromId = from ? from.id : null;
+    item.toId = to ? to.id : null;
+    item.fromName = from ? from.name : "";
+    item.fromColor = from ? from.color : "";
+    item.toName = to ? to.name : "";
+    item.toColor = to ? to.color : "";
+    item.amount = amount;
+    item.date = date || item.date || Date.now();
+
+    if (amount !== null) applyMovementEffect("transfers", item);
+  } else {
+    const account = accountById(document.getElementById("editMovementAccount").value);
+    item.accountId = account ? account.id : null;
+    item.accountName = account ? account.name : "";
+    item.accountColor = account ? account.color : "";
+    item.amount = amount;
+    item.date = date || item.date || Date.now();
+
+    if (newType === "purchase") {
+      item.type = undefined;
+      item.internal = true;
+      item.assetName = description;
+      item.description = description;
+      item.quantity = quantity;
+      item.commission = commission;
+      item.category = item.category || "Altro";
+      if (collection === "incomes") {
+        incomes = incomes.filter(entry => String(entry.id) !== String(id));
+        item.id = makeId();
+        transfers.push(item);
+        editingMovement = {collection:"transfers",id:String(item.id)};
+      }
+      if (amount !== null) applyMovementEffect("transfers", item);
+    } else {
+      item.internal = false;
+      if (collection === "transfers") {
+        transfers = transfers.filter(entry => String(entry.id) !== String(id));
+        item.id = makeId();
+        incomes.push(item);
+        editingMovement = {collection:"incomes",id:String(item.id)};
+      }
+
+      item.type = newType;
+      item.description = description;
+      item.assetName = newType === "sale" ? description.replace(/^Vendita\s*/i, "") : item.assetName;
+      if (newType === "sale") {
+        item.quantity = quantity;
+        item.commission = commission;
+        item.grossAmount = amount === null ? null : roundMoney(amount + commission);
+      } else {
+        delete item.quantity;
+        delete item.commission;
+      }
+      if (amount !== null) applyMovementEffect("incomes", item);
+    }
+  }
+
+  persist();
+  closeMovementEditor();
+  if (selectedAccountId !== null) openAccountDetail(selectedAccountId);
+}
 render();
-
 </script>
-
 </body>
-
 </html>
